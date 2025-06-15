@@ -369,7 +369,18 @@ function createDynamicEditor() {
 		},
 
 		openEditor(target) {
-			const editValue = target.getAttribute('data-edit');
+			let editValue;
+
+			// Handle both string values and DOM elements
+			if (typeof target === 'string') {
+				editValue = target;
+			} else if (target && target.getAttribute) {
+				editValue = target.getAttribute('data-edit');
+			} else {
+				console.error('Invalid target passed to openEditor:', target);
+				return;
+			}
+
 			if (!editValue) return;
 
 			console.log('Opening editor for:', editValue);
