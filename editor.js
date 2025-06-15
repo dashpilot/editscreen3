@@ -441,6 +441,14 @@ function createDynamicEditor() {
 			this.formData = { ...this.currentItem };
 			this.currentTab = 'edit';
 			this.isOpen = true;
+
+			// Reset scroll to top when opening modal
+			this.$nextTick(() => {
+				const modalBody = document.querySelector('.modal-body');
+				if (modalBody) {
+					modalBody.scrollTop = 0;
+				}
+			});
 		},
 
 		generateFormFields(item) {
@@ -515,6 +523,14 @@ function createDynamicEditor() {
 				// Refresh collection items
 				this.collectionItems = this.data[this.collectionName] || [];
 			}
+
+			// Reset scroll to top when switching tabs
+			this.$nextTick(() => {
+				const modalBody = document.querySelector('.modal-body');
+				if (modalBody) {
+					modalBody.scrollTop = 0;
+				}
+			});
 		},
 
 		addTag(fieldKey, value) {
