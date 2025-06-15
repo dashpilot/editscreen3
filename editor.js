@@ -605,8 +605,15 @@ function createDynamicEditor() {
 
 				console.log('Save and update completed successfully');
 
-				// Close the modal after successful save
-				this.closeModal();
+				// Handle post-save actions based on current tab
+				if (this.currentTab === 'all') {
+					// For "All Items" view, refresh the entire page since multiple elements may have changed
+					console.log('Refreshing page after saving from All Items view');
+					window.location.reload();
+				} else {
+					// For "Edit Item" view, update specific element and close modal
+					this.closeModal();
+				}
 			} catch (error) {
 				console.error('Error during save:', error);
 				alert(`Save failed: ${error.message}\n\nCheck the console for more details.`);
