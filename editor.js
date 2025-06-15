@@ -426,10 +426,11 @@ function createDynamicEditor() {
 
 				// Initialize with empty data structure if loading fails
 				this.data = {};
-
+				/*
 				alert(
 					`Failed to load data from ${cfg.data_url}:\n${error.message}\n\nCheck the console for more details.`
 				);
+                */
 			}
 		},
 
