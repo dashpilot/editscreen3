@@ -60,7 +60,7 @@ const editorTemplate = `
                                                 :id="'editor_' + field.key"
                                                 @input="updateRichTextContent($event, field.key)"
                                                 @paste="handlePaste($event)"
-                                                x-html="formData[field.key]"
+                                                x-init="initRichTextContent($el, field.key)"
                                             ></div>
                                         </div>
                                     </div>
@@ -773,6 +773,13 @@ function createDynamicEditor() {
 			event.preventDefault();
 			const text = (event.clipboardData || window.clipboardData).getData('text/plain');
 			document.execCommand('insertText', false, text);
+		},
+
+		initRichTextContent(element, fieldKey) {
+			// Set initial content only once when the element is created
+			if (this.formData[fieldKey]) {
+				element.innerHTML = this.formData[fieldKey];
+			}
 		}
 	};
 }
