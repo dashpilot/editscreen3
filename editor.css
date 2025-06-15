@@ -534,7 +534,7 @@ input:checked+.toggle-slider:before {
     display: none;
     flex: 1;
     overflow-y: visible;
-    min-height: 400px;
+    min-height: 850px;
     padding-right: 0.5rem;
 }
 
@@ -542,14 +542,14 @@ input:checked+.toggle-slider:before {
     display: flex;
     flex-direction: column;
     flex: 1;
-    min-height: 400px;
+    min-height: 850px;
     padding-right: 0.5rem;
 }
 
 /* Edit View Specific */
 #editView {
     overflow-y: visible;
-    min-height: 400px;
+    min-height: 850px;
     padding-right: 0.5rem;
 }
 
@@ -557,7 +557,7 @@ input:checked+.toggle-slider:before {
 #allView {
     flex-direction: column;
     flex: 1;
-    min-height: 400px;
+    min-height: 850px;
 }
 
 .items-header {
