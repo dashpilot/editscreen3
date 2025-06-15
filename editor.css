@@ -703,8 +703,20 @@ input:checked+.toggle-slider:before {
 }
 
 .action-btn.delete:hover {
-    background: #fee2e2;
+    background: #fecaca;
     color: #b91c1c;
+}
+
+.action-btn.delete:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: #f9fafb;
+    color: #9ca3af;
+}
+
+.action-btn.delete:disabled:hover {
+    background: #f9fafb;
+    color: #9ca3af;
 }
 
 /* Footer Content */

@@ -264,7 +264,7 @@ const editorTemplate = `
                                     <button class="action-btn edit" @click.stop="editItem(item)" title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </button>
-                                    <button class="action-btn delete" @click.stop="deleteItem(item)" title="Delete">
+                                    <button class="action-btn delete" @click.stop="deleteItem(item)" :disabled="collectionItems.length <= 1" title="Delete">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </div>
@@ -671,8 +671,17 @@ function createDynamicEditor() {
 		},
 
 		deleteItem(item) {
+			const collection = this.data[this.collectionName];
+
+			// Prevent deletion of the last item in a collection
+			if (collection.length <= 1) {
+				alert(
+					'Cannot delete the last item in this collection. At least one item must remain to keep the editor accessible.'
+				);
+				return;
+			}
+
 			if (confirm('Are you sure you want to delete this item?')) {
-				const collection = this.data[this.collectionName];
 				const index = collection.findIndex((i) => i.id === item.id);
 
 				if (index !== -1) {
