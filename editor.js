@@ -275,9 +275,19 @@ const editorTemplate = `
             </div>
             <div class="modal-footer">
                 <div class="footer-content" x-show="currentTab === 'edit'">
-                    <div class="flex justify-end gap-4">
-                        <button type="button" class="button button-secondary" @click="closeModal()">Cancel</button>
-                        <button type="button" class="button button-primary" @click="saveItem()">Save</button>
+                    <div class="flex items-center justify-end gap-2">
+                        <button type="button" class="button button-secondary" @click="closeModal()">
+                            Cancel
+                        </button>
+                        <button type="button" class="button button-primary" @click="saveItem()" :disabled="isSaving">
+                            <template x-if="isSaving">
+                                <i class="bi bi-arrow-clockwise" style="animation: spin 1s linear infinite;"></i>
+                            </template>
+                            <template x-if="!isSaving">
+                                <i class="bi bi-check"></i>
+                            </template>
+                            <span x-text="isSaving ? 'Saving...' : 'Save'"></span>
+                        </button>
                     </div>
                 </div>
                 <div class="footer-content" x-show="currentTab === 'all' && editType === 'collection'">
@@ -297,19 +307,15 @@ function createDynamicEditor() {
 		// State
 		isOpen: false,
 		currentTab: 'edit',
-		data: { collections: {}, objects: {} },
-
-		// Current editing context
-		editTarget: null, // e.g., "info" or "posts.1"
-		editType: null, // "object" or "collection"
-		currentItem: null,
+		editType: 'object', // 'object' or 'collection'
+		currentItem: {},
 		formData: {},
 		formFields: [],
-
-		// Collection context
 		collectionName: '',
 		collectionItems: [],
 		itemTypeName: '',
+		data: {},
+		isSaving: false,
 
 		// Sortable instance
 		sortableInstance: null,
@@ -505,6 +511,10 @@ function createDynamicEditor() {
 		},
 
 		async saveItem() {
+			if (this.isSaving) return; // Prevent double-clicking
+
+			this.isSaving = true;
+
 			try {
 				// Update local data first
 				if (this.editType === 'collection') {
@@ -583,9 +593,14 @@ function createDynamicEditor() {
 				}
 
 				console.log('Save and update completed successfully');
+
+				// Close the modal after successful save
+				this.closeModal();
 			} catch (error) {
 				console.error('Error during save:', error);
 				alert(`Save failed: ${error.message}\n\nCheck the console for more details.`);
+			} finally {
+				this.isSaving = false;
 			}
 		},
 
