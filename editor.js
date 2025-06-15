@@ -283,9 +283,6 @@ const editorTemplate = `
                             <template x-if="isSaving">
                                 <i class="bi bi-arrow-clockwise" style="animation: spin 1s linear infinite;"></i>
                             </template>
-                            <template x-if="!isSaving">
-                                <i class="bi bi-check"></i>
-                            </template>
                             <span x-text="isSaving ? 'Saving...' : 'Save'"></span>
                         </button>
                     </div>
@@ -298,9 +295,6 @@ const editorTemplate = `
                         <button type="button" class="button button-primary" @click="saveItem()" :disabled="isSaving">
                             <template x-if="isSaving">
                                 <i class="bi bi-arrow-clockwise" style="animation: spin 1s linear infinite;"></i>
-                            </template>
-                            <template x-if="!isSaving">
-                                <i class="bi bi-check"></i>
                             </template>
                             <span x-text="isSaving ? 'Saving...' : 'Save'"></span>
                         </button>
