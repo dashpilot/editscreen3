@@ -1,0 +1,48 @@
+{
+	"info": {
+		"title": "My Blog",
+		"description": "A place where I share my thoughts on web development and design.",
+		"image": ""
+	},
+	"settings": {
+		"theme": "light",
+		"postsPerPage": 10,
+		"enableComments": true
+	},
+	"posts": [
+		{
+			"id": 1,
+			"title": "Getting Started with Alpine.js",
+			"content": "Alpine.js is a rugged, minimal framework for composing JavaScript behavior in your markup. It brings declarative nature of frameworks like Vue and React at a much lower cost.",
+			"category": "JavaScript",
+			"tags": ["alpine", "javascript", "framework"],
+			"status": "published",
+			"featured": true,
+			"publishDate": "2024-01-15",
+			"image": "",
+			"gallery": []
+		},
+		{
+			"id": 2,
+			"title": "Modern CSS Techniques",
+			"content": "Explore the latest CSS features including Grid, Flexbox, and custom properties to create beautiful, responsive layouts.",
+			"category": "CSS",
+			"tags": ["css", "grid", "flexbox"],
+			"status": "draft",
+			"featured": false,
+			"publishDate": "2024-01-20",
+			"image": "",
+			"images": []
+		},
+		{
+			"id": 3,
+			"title": "Building Dynamic UIs",
+			"content": "Learn how to create interactive user interfaces that respond to user input and data changes.",
+			"category": "UI/UX",
+			"tags": ["ui", "ux", "interactive"],
+			"status": "published",
+			"featured": false,
+			"publishDate": "2024-01-10"
+		}
+	]
+}
