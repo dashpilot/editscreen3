@@ -104,12 +104,6 @@ Include the editor files in your HTML:
 	<!-- Alpine.js (required) -->
 	<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
-	<!-- Bootstrap Icons (for UI icons) -->
-	<link
-		rel="stylesheet"
-		href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css"
-	/>
-
 	<!-- Editor System -->
 	<link rel="stylesheet" href="editor.css" />
 	<script src="editor.js"></script>
@@ -248,14 +242,6 @@ app.post('/api/save', (req, res) => {
 - **File Permissions**: Ensure proper write permissions for data files
 - **Access Control**: Implement authentication for production use
 - **Input Sanitization**: Sanitize user input before saving
-
-## 🌐 Browser Support
-
-- ✅ **Chrome/Edge**: Full support (latest versions)
-- ✅ **Firefox**: Full support (latest versions)
-- ✅ **Safari**: Full support (latest versions)
-- ✅ **Mobile**: Optimized for iOS and Android browsers
-- ❌ **IE**: Not supported (uses modern JavaScript features)
 
 ## 📱 Mobile Features
 

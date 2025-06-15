@@ -487,7 +487,12 @@ function createDynamicEditor() {
 						'UI/UX',
 						'CSS'
 					];
-				} else if (key === 'content' || key === 'description') {
+				} else if (
+					key === 'content' ||
+					key === 'description' ||
+					key === 'body' ||
+					key === 'extended'
+				) {
 					field.type = 'textarea';
 				} else {
 					field.type = 'text';
@@ -503,7 +508,13 @@ function createDynamicEditor() {
 		},
 
 		formatLabel(key) {
-			return key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1');
+			return (
+				key.charAt(0).toUpperCase() +
+				key
+					.slice(1)
+					.replace(/([A-Z])/g, ' $1')
+					.replace(/_/g, ' ')
+			);
 		},
 
 		switchTab(tab) {
