@@ -173,10 +173,9 @@
 .form-input,
 .form-textarea,
 .form-select {
-    background: #ffffff;
-    border: 2px solid #e5e7eb;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     width: 100%;
+    border: 2px solid #e5e7eb;
+    background: #ffffff;
     padding: 1rem 1.25rem;
     border-radius: 0.75rem;
     font-size: 1rem;
@@ -184,7 +183,6 @@
     font-family: 'Inter', sans-serif;
     font-weight: 400;
     color: #1f2937;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .form-textarea {
@@ -225,7 +223,6 @@
     background: #ffffff;
     min-height: 4rem;
     align-items: flex-start;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
