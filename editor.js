@@ -1,8 +1,3 @@
-// Global Configuration
-const cfg = {
-	data_url: 'data.json'
-};
-
 // Dynamic Editor Template - generates inputs based on data structure
 const editorTemplate = `
 <div class="modal-overlay" x-show="isOpen" x-transition style="display: none;" @click.self="closeModal()">
