@@ -9,7 +9,7 @@
 }
 
 [data-edit]:hover {
-    outline: 3px dashed #8b5cf6;
+    outline: 3px dashed rgb(79, 70, 229);
     outline-offset: 4px;
     cursor: pointer;
 }
