@@ -1147,7 +1147,7 @@ input:checked+.toggle-slider:before {
     align-items: center;
     justify-content: center;
     width: 3rem;
-    height: 3rem;
+    height: 2.5rem;
     border: none;
     border-right: 1px solid #e5e7eb;
     background: transparent;
