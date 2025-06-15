@@ -339,6 +339,7 @@ function createDynamicEditor() {
 			try {
 				const response = await fetch(cfg.data_url);
 				const rawData = await response.json();
+				console.log(rawData);
 
 				// Automatically organize data into collections and objects
 				this.data = { collections: {}, objects: {} };
