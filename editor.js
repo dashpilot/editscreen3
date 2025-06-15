@@ -227,19 +227,43 @@ const editorTemplate = `
                                         <label class="form-label" x-text="field.label"></label>
                                         <div class="array-container">
                                             <template x-for="(arrayItem, index) in formData[field.key]" :key="index">
-                                                <div class="array-item">
-                                                    <input 
-                                                        type="text" 
-                                                        class="form-input" 
-                                                        :placeholder="'Item ' + (index + 1)"
-                                                        x-model="formData[field.key][index]"
-                                                    >
-                                                    <button type="button" class="array-remove-btn" @click="removeArrayItem(field.key, index)" title="Remove">
-                                                        <i class="bi bi-trash"></i>
-                                                    </button>
+                                                <div class="array-item-group">
+                                                    <div class="array-item-header">
+                                                        <span class="array-item-title" x-text="'Item ' + (index + 1)"></span>
+                                                        <button type="button" class="array-remove-btn" @click="removeArrayItem(field.key, index)" title="Remove">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                    <!-- Handle string arrays -->
+                                                    <template x-if="typeof arrayItem === 'string'">
+                                                        <div class="array-item">
+                                                            <input 
+                                                                type="text" 
+                                                                class="form-input" 
+                                                                :placeholder="'Item ' + (index + 1)"
+                                                                x-model="formData[field.key][index]"
+                                                            >
+                                                        </div>
+                                                    </template>
+                                                    <!-- Handle object arrays -->
+                                                    <template x-if="typeof arrayItem === 'object' && arrayItem !== null">
+                                                        <div class="array-object-fields">
+                                                            <template x-for="(value, objKey) in arrayItem" :key="objKey">
+                                                                <div class="array-object-field">
+                                                                    <label class="form-label" x-text="objKey.charAt(0).toUpperCase() + objKey.slice(1).replace(/([A-Z])/g, ' $1').replace(/_/g, ' ')"></label>
+                                                                    <input 
+                                                                        type="text" 
+                                                                        class="form-input" 
+                                                                        :placeholder="objKey"
+                                                                        x-model="formData[field.key][index][objKey]"
+                                                                    >
+                                                                </div>
+                                                            </template>
+                                                        </div>
+                                                    </template>
                                                 </div>
                                             </template>
-                                            <button type="button" class="array-add-btn" @click="addArrayItem(field.key)">
+                                            <button type="button" class="button button-secondary array-add-btn" @click="addArrayItem(field.key)">
                                                 <i class="bi bi-plus"></i>
                                                 <span>Add Item</span>
                                             </button>
@@ -585,7 +609,25 @@ function createDynamicEditor() {
 			if (!this.formData[fieldKey]) {
 				this.formData[fieldKey] = [];
 			}
-			this.formData[fieldKey].push('');
+
+			// Determine what type of item to add based on existing items
+			if (this.formData[fieldKey].length > 0) {
+				const firstItem = this.formData[fieldKey][0];
+				if (typeof firstItem === 'object' && firstItem !== null) {
+					// Clone the structure of the first object with empty values
+					const newItem = {};
+					for (const key in firstItem) {
+						newItem[key] = '';
+					}
+					this.formData[fieldKey].push(newItem);
+				} else {
+					// Add empty string for string arrays
+					this.formData[fieldKey].push('');
+				}
+			} else {
+				// Default to empty string if array is empty
+				this.formData[fieldKey].push('');
+			}
 		},
 
 		removeArrayItem(fieldKey, index) {
