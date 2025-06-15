@@ -1,3 +1,8 @@
+// Global Configuration
+const cfg = {
+	data_url: 'data.json'
+};
+
 // Dynamic Editor Template - generates inputs based on data structure
 const editorTemplate = `
 <div class="modal-overlay" x-show="isOpen" x-transition style="display: none;" @click.self="closeModal()">
@@ -332,7 +337,7 @@ function createDynamicEditor() {
 
 		async loadData() {
 			try {
-				const response = await fetch('data.json');
+				const response = await fetch(cfg.data_url);
 				const rawData = await response.json();
 
 				// Automatically organize data into collections and objects
