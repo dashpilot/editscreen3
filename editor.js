@@ -340,6 +340,15 @@ function createDynamicEditor() {
 			document.addEventListener('click', (event) => {
 				const editElement = event.target.closest('[data-edit]');
 				if (editElement) {
+					// Check if the clicked element is a link, button, or inside one
+					const clickedElement = event.target;
+					const isInteractiveElement = clickedElement.closest('a, button, input, select, textarea');
+
+					// If clicked on an interactive element, don't trigger the modal
+					if (isInteractiveElement) {
+						return;
+					}
+
 					event.preventDefault();
 					const dataEdit = editElement.getAttribute('data-edit');
 					this.openEditor(dataEdit);
