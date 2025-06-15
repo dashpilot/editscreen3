@@ -471,22 +471,107 @@ input:checked+.toggle-slider:before {
 
 /* Responsive styles */
 @media (max-width: 768px) {
+    .modal-overlay {
+        padding: 0;
+    }
+
     .modal-content {
-        margin: 1rem;
-        max-height: calc(100vh - 2rem);
+        margin: 0;
+        max-height: 100vh;
+        border-radius: 0;
+        height: 100vh;
+    }
+
+    .modal-header {
+        padding: 1rem;
+    }
+
+    .modal-body {
+        padding: 0 1rem;
+    }
+
+    .modal-footer {
+        padding: 1rem;
     }
 
     .tab-content {
-        padding: 1rem;
+        padding: 1rem 0;
+        padding-right: 0;
+    }
+
+    .tab-content.active {
+        padding: 1rem 0;
+        padding-right: 0;
+    }
+
+    #editView {
+        padding-right: 0;
     }
 
     .item-card {
         padding: 0.75rem;
+        margin-bottom: 0.5rem;
     }
 
     .item-actions {
         opacity: 1;
         /* Always show on mobile */
+    }
+
+    /* Form inputs with less padding on mobile */
+    .form-input,
+    .form-textarea,
+    .form-select {
+        padding: 0.75rem;
+        font-size: 16px;
+        /* Prevent zoom on iOS */
+    }
+
+    .tag-input-container {
+        padding: 0.75rem;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    /* Navigation - icon only on mobile */
+    .nav-button {
+        padding: 0.75rem;
+        min-width: 3rem;
+    }
+
+    .nav-text {
+        display: none;
+    }
+
+    .nav-button i {
+        font-size: 1.25rem;
+    }
+
+    /* Rich text editor adjustments */
+    .rich-text-content {
+        padding: 0.75rem;
+        font-size: 16px;
+        /* Prevent zoom on iOS */
+    }
+
+    /* Gallery adjustments */
+    .gallery-item {
+        padding: 0.75rem;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .gallery-item-preview {
+        align-self: center;
+        margin-bottom: 0.75rem;
+    }
+
+    /* Button adjustments */
+    .button {
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
     }
 }
 

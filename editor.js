@@ -7,11 +7,11 @@ const editorTemplate = `
                 <div class="modal-nav">
                     <button class="nav-button" :class="{ active: currentTab === 'edit' }" @click="switchTab('edit')">
                         <i class="bi bi-pencil"></i>
-                        <span>Edit Item</span>
+                        <span class="nav-text">Edit Item</span>
                     </button>
                     <button class="nav-button" :class="{ active: currentTab === 'all' }" @click="switchTab('all')" x-show="editType === 'collection'">
                         <i class="bi bi-list-ul"></i>
-                        <span>All Items</span>
+                        <span class="nav-text">All Items</span>
                     </button>
                 </div>
                 <button class="modal-close" @click="closeModal()">&times;</button>
@@ -290,9 +290,20 @@ const editorTemplate = `
                         </button>
                     </div>
                 </div>
-                <div class="footer-content" x-show="currentTab === 'all' && editType === 'collection'">
-                    <div class="flex justify-end gap-4">
-                        <button type="button" class="button button-secondary" @click="closeModal()">Close</button>
+                <div class="footer-content" x-show="currentTab === 'all'">
+                    <div class="flex items-center justify-end gap-2">
+                        <button type="button" class="button button-secondary" @click="closeModal()">
+                            Close
+                        </button>
+                        <button type="button" class="button button-primary" @click="saveItem()" :disabled="isSaving">
+                            <template x-if="isSaving">
+                                <i class="bi bi-arrow-clockwise" style="animation: spin 1s linear infinite;"></i>
+                            </template>
+                            <template x-if="!isSaving">
+                                <i class="bi bi-check"></i>
+                            </template>
+                            <span x-text="isSaving ? 'Saving...' : 'Save'"></span>
+                        </button>
                     </div>
                 </div>
             </div>
