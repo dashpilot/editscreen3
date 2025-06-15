@@ -78,7 +78,7 @@
 
 .modal-close {
     position: absolute;
-    top: 1rem;
+    top: 0.5rem;
     right: 1rem;
     color: rgba(255, 255, 255, 0.9);
     background: none;
