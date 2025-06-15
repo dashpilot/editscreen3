@@ -60,7 +60,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1.5rem 2rem;
+    padding: 1.5rem 2rem 0 2rem;
     background: #1f2937;
     border-bottom: none;
     flex-shrink: 0;
@@ -576,9 +576,10 @@ input:checked+.toggle-slider:before {
 .modal-nav {
     display: flex;
     gap: 0;
-    border-radius: 0.5rem;
-    overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    margin-bottom: -1px;
+    position: relative;
+    z-index: 1;
 }
 
 .nav-button {
@@ -587,20 +588,21 @@ input:checked+.toggle-slider:before {
     gap: 0.5rem;
     padding: 0.5rem 1.25rem;
     background: rgba(255, 255, 255, 0.1);
-    border: none;
-    border-right: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-bottom: none;
     color: rgba(255, 255, 255, 0.7);
-    border-radius: 0;
+    border-radius: 0.25rem 0 0 0;
     cursor: pointer;
     transition: all 0.3s ease;
     font-family: 'Inter', sans-serif;
     font-weight: 500;
     font-size: 0.875rem;
     position: relative;
+    margin-right: 0.5rem;
 }
 
 .nav-button:last-child {
-    border-right: none;
+    margin-right: 0;
 }
 
 .nav-button:hover {
@@ -610,10 +612,12 @@ input:checked+.toggle-slider:before {
 }
 
 .nav-button.active {
-    background: rgba(255, 255, 255, 0.25);
-    color: #ffffff;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    background: #ffffff;
+    color: #1f2937;
+    border-color: rgba(255, 255, 255, 0.4);
+    border-bottom: 1px solid #ffffff;
     z-index: 2;
+    margin-bottom: -1px;
 }
 
 .nav-button i {
