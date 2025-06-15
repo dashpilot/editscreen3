@@ -504,27 +504,89 @@ function createDynamicEditor() {
 			this.formData[fieldKey].splice(index, 1);
 		},
 
-		saveItem() {
-			if (this.editType === 'collection') {
-				// Update item in collection array
-				const collection = this.data[this.collectionName];
-				const index = collection.findIndex((item) => item.id === this.currentItem.id);
+		async saveItem() {
+			try {
+				// Update local data first
+				if (this.editType === 'collection') {
+					// Update item in collection array
+					const collection = this.data[this.collectionName];
+					const index = collection.findIndex((item) => item.id === this.currentItem.id);
 
-				if (index !== -1) {
-					collection[index] = { ...this.formData };
-					this.collectionItems = [...collection];
-					console.log('Item updated in collection:', this.collectionName);
+					if (index !== -1) {
+						collection[index] = { ...this.formData };
+						this.collectionItems = [...collection];
+						console.log('Item updated in collection:', this.collectionName);
+					} else {
+						console.error('Item not found for update');
+						return;
+					}
 				} else {
-					console.error('Item not found for update');
+					// Update object directly
+					this.data[this.collectionName] = { ...this.formData };
+					console.log('Object updated:', this.collectionName);
 				}
-			} else {
-				// Update object directly
-				this.data[this.collectionName] = { ...this.formData };
-				console.log('Object updated:', this.collectionName);
-			}
 
-			this.currentItem = { ...this.formData };
-			console.log('Item saved successfully');
+				this.currentItem = { ...this.formData };
+
+				// Save to server
+				console.log('Saving data to server...');
+				const saveResponse = await fetch('/api/save', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify(this.data)
+				});
+
+				if (!saveResponse.ok) {
+					throw new Error(`Save failed: ${saveResponse.status} - ${saveResponse.statusText}`);
+				}
+
+				console.log('Data saved successfully to server');
+
+				// Fetch updated HTML from current page
+				console.log('Fetching updated page content...');
+				const pageResponse = await fetch(window.location.href);
+
+				if (!pageResponse.ok) {
+					throw new Error(`Page fetch failed: ${pageResponse.status} - ${pageResponse.statusText}`);
+				}
+
+				const updatedHTML = await pageResponse.text();
+
+				// Parse the response HTML
+				const parser = new DOMParser();
+				const updatedDoc = parser.parseFromString(updatedHTML, 'text/html');
+
+				// Determine the data-edit path we're currently editing
+				let editPath;
+				if (this.editType === 'collection') {
+					editPath = `${this.collectionName}.${this.currentItem.id}`;
+				} else {
+					editPath = this.collectionName;
+				}
+
+				console.log('Looking for updated content with data-edit:', editPath);
+
+				// Find the corresponding element in the updated HTML
+				const updatedElement = updatedDoc.querySelector(`[data-edit="${editPath}"]`);
+				const currentElement = document.querySelector(`[data-edit="${editPath}"]`);
+
+				if (updatedElement && currentElement) {
+					// Replace the content of the current element with the updated content
+					currentElement.innerHTML = updatedElement.innerHTML;
+					console.log('Page content updated successfully');
+				} else {
+					console.warn('Could not find matching elements for content update');
+					if (!updatedElement) console.warn('Updated element not found in server response');
+					if (!currentElement) console.warn('Current element not found on page');
+				}
+
+				console.log('Save and update completed successfully');
+			} catch (error) {
+				console.error('Error during save:', error);
+				alert(`Save failed: ${error.message}\n\nCheck the console for more details.`);
+			}
 		},
 
 		addNewItem() {
