@@ -337,73 +337,77 @@ function createDynamicEditor() {
 
 		async loadData() {
 			try {
+				console.log('Attempting to fetch data from:', cfg.data_url);
 				const response = await fetch(cfg.data_url);
-				const rawData = await response.json();
-				console.log(rawData);
 
-				// Automatically organize data into collections and objects
-				this.data = { collections: {}, objects: {} };
-
-				for (const [key, value] of Object.entries(rawData)) {
-					if (Array.isArray(value)) {
-						// Add _idx to array items for identification
-						this.data.collections[key] = value.map((item, idx) => ({ ...item, _idx: idx }));
-					} else if (typeof value === 'object' && value !== null) {
-						this.data.objects[key] = value;
-					}
+				if (!response.ok) {
+					throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
 				}
 
-				console.log('Data loaded and organized:', this.data);
+				const rawData = await response.json();
+				console.log('Successfully loaded data:', rawData);
+
+				// Keep the original data structure intact
+				this.data = rawData;
+
+				console.log('Data loaded successfully');
 			} catch (error) {
-				console.error('Error loading data:', error);
-				// Initialize with empty structure if data.json doesn't exist
-				this.data = {
-					collections: { posts: [] },
-					objects: { info: { title: '', description: '' } }
-				};
+				console.error('Failed to load data:', error);
+				console.error('Error details:', {
+					message: error.message,
+					url: cfg.data_url,
+					type: error.name
+				});
+
+				// Initialize with empty data structure if loading fails
+				this.data = {};
+
+				alert(
+					`Failed to load data from ${cfg.data_url}:\n${error.message}\n\nCheck the console for more details.`
+				);
 			}
 		},
 
 		openEditor(target) {
-			this.editTarget = target;
-			this.currentTab = 'edit';
+			const editValue = target.getAttribute('data-edit');
+			if (!editValue) return;
 
-			if (target.includes('.')) {
-				// Collection item (e.g., "posts.1")
-				const [collectionKey, itemId] = target.split('.');
-				this.editType = 'collection';
-				this.collectionName = collectionKey;
-				this.itemTypeName = collectionKey.slice(0, -1); // Remove 's' for singular
-				this.collectionItems = this.data.collections[collectionKey] || [];
+			console.log('Opening editor for:', editValue);
 
-				// Find the specific item
-				this.currentItem = this.collectionItems.find(
-					(item) => String(item.id || item._idx) === itemId
-				);
+			// Parse the edit value (e.g., "site", "pages.1", "articles.2")
+			const parts = editValue.split('.');
+			const key = parts[0];
 
-				if (this.currentItem) {
-					this.generateFormFields(this.currentItem);
-					this.formData = { ...this.currentItem };
-				} else {
-					console.error('Item not found:', target);
-					return;
-				}
-			} else {
-				// Object (e.g., "info")
+			if (parts.length === 1) {
+				// Editing an object (e.g., "site")
 				this.editType = 'object';
-				this.currentItem = this.data.objects[target];
-				this.collectionName = '';
-				this.collectionItems = [];
+				this.currentItem = this.data[key] || {};
+				this.collectionName = key;
+				this.itemTypeName = this.formatLabel(key);
+			} else {
+				// Editing an item in an array (e.g., "pages.1")
+				this.editType = 'collection';
+				this.collectionName = key;
+				this.itemTypeName = this.formatLabel(key.slice(0, -1)); // Remove 's' from plural
 
-				if (this.currentItem) {
-					this.generateFormFields(this.currentItem);
-					this.formData = { ...this.currentItem };
-				} else {
-					console.error('Object not found:', target);
+				const collection = this.data[key] || [];
+				const itemId = parseInt(parts[1]);
+
+				// Find item by ID
+				this.currentItem = collection.find((item) => item.id === itemId);
+
+				if (!this.currentItem) {
+					console.error('Item not found:', editValue);
 					return;
 				}
+
+				// Set up collection items for "All Items" view
+				this.collectionItems = [...collection];
 			}
 
+			this.generateFormFields(this.currentItem);
+			this.formData = { ...this.currentItem };
+			this.currentTab = 'edit';
 			this.isOpen = true;
 		},
 
@@ -477,7 +481,7 @@ function createDynamicEditor() {
 			this.currentTab = tab;
 			if (tab === 'all' && this.editType === 'collection') {
 				// Refresh collection items
-				this.collectionItems = this.data.collections[this.collectionName] || [];
+				this.collectionItems = this.data[this.collectionName] || [];
 			}
 		},
 
@@ -495,32 +499,31 @@ function createDynamicEditor() {
 		},
 
 		saveItem() {
-			// Update the original data
-			if (this.editType === 'object') {
-				this.data.objects[this.editTarget] = { ...this.formData };
-			} else if (this.editType === 'collection') {
-				const [collectionKey] = this.editTarget.split('.');
-				const collection = this.data.collections[collectionKey];
-				const index = collection.findIndex(
-					(item) =>
-						(item.id && item.id === this.currentItem.id) ||
-						(item._idx && item._idx === this.currentItem._idx)
-				);
+			if (this.editType === 'collection') {
+				// Update item in collection array
+				const collection = this.data[this.collectionName];
+				const index = collection.findIndex((item) => item.id === this.currentItem.id);
 
 				if (index !== -1) {
 					collection[index] = { ...this.formData };
+					this.collectionItems = [...collection];
+					console.log('Item updated in collection:', this.collectionName);
+				} else {
+					console.error('Item not found for update');
 				}
+			} else {
+				// Update object directly
+				this.data[this.collectionName] = { ...this.formData };
+				console.log('Object updated:', this.collectionName);
 			}
 
-			// Here you would typically save to server
-			console.log('Saving data:', this.data);
-
-			this.closeModal();
+			this.currentItem = { ...this.formData };
+			console.log('Item saved successfully');
 		},
 
 		addNewItem() {
 			if (this.editType === 'collection') {
-				const collection = this.data.collections[this.collectionName];
+				const collection = this.data[this.collectionName];
 
 				// Calculate next ID
 				let nextId = 1;
@@ -557,23 +560,18 @@ function createDynamicEditor() {
 					template = {
 						id: nextId,
 						title: '',
-						content: '',
-						category: '',
-						tags: [],
-						status: 'draft',
-						featured: false,
-						publishDate: new Date().toISOString().split('T')[0]
+						content: ''
 					};
 				}
 
 				// Add to collection
-				if (!this.data.collections[this.collectionName]) {
-					this.data.collections[this.collectionName] = [];
+				if (!this.data[this.collectionName]) {
+					this.data[this.collectionName] = [];
 				}
-				this.data.collections[this.collectionName].push(template);
+				this.data[this.collectionName].push(template);
 
 				// Update reactive data
-				this.collectionItems = [...this.data.collections[this.collectionName]];
+				this.collectionItems = [...this.data[this.collectionName]];
 
 				// Edit the new item
 				this.editItem(template);
@@ -591,14 +589,18 @@ function createDynamicEditor() {
 
 		deleteItem(item) {
 			if (confirm('Are you sure you want to delete this item?')) {
-				const collection = this.data.collections[this.collectionName];
-				const index = collection.findIndex(
-					(i) => (i.id && i.id === item.id) || (i._idx && i._idx === item._idx)
-				);
+				const collection = this.data[this.collectionName];
+				const index = collection.findIndex((i) => i.id === item.id);
 
 				if (index !== -1) {
 					collection.splice(index, 1);
 					this.collectionItems = [...collection];
+					console.log('Item deleted');
+
+					// Close modal if we're editing the deleted item
+					if (this.currentItem && this.currentItem.id === item.id) {
+						this.closeModal();
+					}
 				}
 			}
 		},
@@ -716,7 +718,7 @@ function createDynamicEditor() {
 
 			if (newIndex >= 0 && newIndex < this.collectionItems.length) {
 				// Update both the main data and reactive data
-				const items = this.data.collections[this.collectionName];
+				const items = this.data[this.collectionName];
 				const item = items.splice(index, 1)[0];
 				items.splice(newIndex, 0, item);
 
@@ -726,7 +728,7 @@ function createDynamicEditor() {
 				console.log('Item moved:', {
 					from: index,
 					to: newIndex,
-					item: item.title || item.id || item._idx
+					item: item.title || item.id
 				});
 			}
 		},
