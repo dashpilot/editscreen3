@@ -220,6 +220,32 @@ const editorTemplate = `
                                         </div>
                                     </div>
                                 </template>
+                                
+                                <!-- Array (for non-image arrays) -->
+                                <template x-if="field.type === 'array'">
+                                    <div>
+                                        <label class="form-label" x-text="field.label"></label>
+                                        <div class="array-container">
+                                            <template x-for="(arrayItem, index) in formData[field.key]" :key="index">
+                                                <div class="array-item">
+                                                    <input 
+                                                        type="text" 
+                                                        class="form-input" 
+                                                        :placeholder="'Item ' + (index + 1)"
+                                                        x-model="formData[field.key][index]"
+                                                    >
+                                                    <button type="button" class="array-remove-btn" @click="removeArrayItem(field.key, index)" title="Remove">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </template>
+                                            <button type="button" class="array-add-btn" @click="addArrayItem(field.key)">
+                                                <i class="bi bi-plus"></i>
+                                                <span>Add Item</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </template>
                             </div>
                         </template>
                     </form>
@@ -463,10 +489,14 @@ function createDynamicEditor() {
 				} else if (key === 'gallery' || key === 'images') {
 					field.type = 'gallery';
 				} else if (Array.isArray(value)) {
-					if (value.length === 0 || typeof value[0] === 'string') {
+					// Only use gallery for specific image-related keys
+					if (key === 'gallery' || key === 'images') {
+						field.type = 'gallery';
+					} else if (value.length === 0 || typeof value[0] === 'string') {
 						field.type = 'tags';
 					} else {
-						field.type = 'gallery'; // Array of objects is likely a gallery
+						// For other arrays of objects, create simple text inputs
+						field.type = 'array';
 					}
 				} else if (typeof value === 'boolean') {
 					field.type = 'checkbox';
@@ -548,6 +578,17 @@ function createDynamicEditor() {
 		},
 
 		removeTag(fieldKey, index) {
+			this.formData[fieldKey].splice(index, 1);
+		},
+
+		addArrayItem(fieldKey) {
+			if (!this.formData[fieldKey]) {
+				this.formData[fieldKey] = [];
+			}
+			this.formData[fieldKey].push('');
+		},
+
+		removeArrayItem(fieldKey, index) {
 			this.formData[fieldKey].splice(index, 1);
 		},
 

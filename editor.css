@@ -1027,6 +1027,68 @@ input:checked+.toggle-slider:before {
     font-size: 1.25rem;
 }
 
+/* Array input styles */
+.array-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.array-item {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.array-item .form-input {
+    flex: 1;
+}
+
+.array-remove-btn {
+    padding: 0.75rem;
+    background: #fef2f2;
+    color: #dc2626;
+    border: 1px solid #fecaca;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    min-width: 2.5rem;
+    height: 2.5rem;
+}
+
+.array-remove-btn:hover {
+    background: #fee2e2;
+    border-color: #fca5a5;
+    transform: scale(1.05);
+}
+
+.array-add-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: #f8fafc;
+    color: #475569;
+    border: 2px dashed #cbd5e1;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-top: 0.5rem;
+}
+
+.array-add-btn:hover {
+    background: #f1f5f9;
+    border-color: #94a3b8;
+    color: #334155;
+}
+
 /* Updated Action Button Styles */
 .action-btn.move {
     background: #e0f2fe;
