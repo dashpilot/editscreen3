@@ -34,7 +34,7 @@
 
 .modal-container {
     width: 100%;
-    max-width: 1100px;
+    max-width: 1200px;
     height: 750px;
     max-height: 90vh;
     background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
@@ -538,14 +538,21 @@ input:checked+.toggle-slider:before {
 @media (max-width: 768px) {
     .modal-overlay {
         padding: 0;
+        align-items: flex-start;
     }
 
-    .modal-content {
+    .modal-container {
         margin: 0;
         max-height: 100vh;
         border-radius: 0;
         height: 100vh;
+        display: flex;
         flex-direction: column;
+    }
+
+    .modal-content {
+        flex-direction: column;
+        height: 100%;
     }
 
     .modal-sidebar {
@@ -554,6 +561,7 @@ input:checked+.toggle-slider:before {
         border-right: none;
         border-bottom: 1px solid #1f2937;
         background: #2c3236;
+        flex-shrink: 0;
     }
 
     .sidebar-header {
@@ -563,14 +571,22 @@ input:checked+.toggle-slider:before {
     .sidebar-nav {
         flex-direction: row;
         padding: 0;
-        overflow-x: auto;
+        width: 100%;
+        display: flex;
     }
 
     .sidebar-nav-item {
+        flex: 1;
+        text-align: center;
         white-space: nowrap;
-        padding: 0.75rem 1rem;
+        padding: 1rem;
         border-right: none;
         border-bottom: 3px solid transparent;
+        margin-top: 0;
+    }
+
+    .sidebar-nav-item:first-child {
+        margin-top: 0;
     }
 
     .sidebar-nav-item.active {
@@ -581,18 +597,27 @@ input:checked+.toggle-slider:before {
 
     .modal-main {
         flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
     }
 
     .modal-header {
         padding: 1rem;
+        flex-shrink: 0;
     }
 
     .modal-body {
-        padding: 0 1rem;
+        padding: 5px 1rem 1rem 1rem;
+        flex: 1;
+        overflow-y: auto;
+        min-height: 0;
     }
 
     .modal-footer {
         padding: 1rem;
+        flex-shrink: 0;
+        border-top: 1px solid #e5e7eb;
     }
 
     .tab-content {
@@ -636,19 +661,7 @@ input:checked+.toggle-slider:before {
         margin-bottom: 1rem;
     }
 
-    /* Navigation - icon only on mobile */
-    .nav-button {
-        padding: 0.75rem;
-        min-width: 3rem;
-    }
-
-    .nav-text {
-        display: none;
-    }
-
-    .nav-button i {
-        font-size: 1.25rem;
-    }
+    /* Old navigation styles - no longer needed with sidebar */
 
     /* Rich text editor adjustments */
     .rich-text-content {
