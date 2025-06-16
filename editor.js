@@ -3,20 +3,27 @@ const editorTemplate = `
 <div class="modal-overlay" x-show="isOpen" x-transition style="display: none;" @click.self="closeModal()">
     <div class="modal-container">
         <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-nav">
-                    <button class="nav-button" :class="{ active: currentTab === 'edit' }" @click="switchTab('edit')">
+            <div class="modal-sidebar">
+                <div class="sidebar-header">
+                    <h3 class="sidebar-title">Editor</h3>
+                </div>
+                <div class="sidebar-nav">
+                    <button class="sidebar-nav-item" :class="{ active: currentTab === 'edit' }" @click="switchTab('edit')">
                         <i class="bi bi-pencil"></i>
                         <span class="nav-text">Edit Item</span>
                     </button>
-                    <button class="nav-button" :class="{ active: currentTab === 'all' }" @click="switchTab('all')" x-show="editType === 'collection'">
+                    <button class="sidebar-nav-item" :class="{ active: currentTab === 'all' }" @click="switchTab('all')" x-show="editType === 'collection'">
                         <i class="bi bi-list-ul"></i>
                         <span class="nav-text">All Items</span>
                     </button>
                 </div>
-                <button class="modal-close" @click="closeModal()">&times;</button>
             </div>
-            <div class="modal-body">
+            <div class="modal-main">
+                <div class="modal-header">
+                    <h2 class="modal-title" x-text="currentTab === 'edit' ? 'Edit Item' : 'All ' + (collectionName || 'Items')"></h2>
+                    <button class="modal-close" @click="closeModal()">&times;</button>
+                </div>
+                <div class="modal-body">
                 <!-- Edit Item View -->
                 <div class="tab-content" :class="{ active: currentTab === 'edit' }">
                     <form @submit.prevent="saveItem()">
@@ -337,32 +344,33 @@ const editorTemplate = `
                         </template>
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <div class="footer-content" x-show="currentTab === 'edit'">
-                    <div class="flex items-center justify-end gap-2">
-                        <button type="button" class="button button-secondary" @click="closeModal()">
-                            Cancel
-                        </button>
-                        <button type="button" class="button button-primary" @click="saveItem()" :disabled="isSaving">
-                            <template x-if="isSaving">
-                                <i class="bi bi-arrow-clockwise" style="animation: spin 1s linear infinite;"></i>
-                            </template>
-                            <span x-text="isSaving ? 'Saving...' : 'Save'"></span>
-                        </button>
-                    </div>
                 </div>
-                <div class="footer-content" x-show="currentTab === 'all'">
-                    <div class="flex items-center justify-end gap-2">
-                        <button type="button" class="button button-secondary" @click="closeModal()">
-                            Close
-                        </button>
-                        <button type="button" class="button button-primary" @click="saveItem()" :disabled="isSaving">
-                            <template x-if="isSaving">
-                                <i class="bi bi-arrow-clockwise" style="animation: spin 1s linear infinite;"></i>
-                            </template>
-                            <span x-text="isSaving ? 'Saving...' : 'Save'"></span>
-                        </button>
+                <div class="modal-footer">
+                    <div class="footer-content" x-show="currentTab === 'edit'">
+                        <div class="flex items-center justify-end gap-2">
+                            <button type="button" class="button button-secondary" @click="closeModal()">
+                                Cancel
+                            </button>
+                            <button type="button" class="button button-primary" @click="saveItem()" :disabled="isSaving">
+                                <template x-if="isSaving">
+                                    <i class="bi bi-arrow-clockwise" style="animation: spin 1s linear infinite;"></i>
+                                </template>
+                                <span x-text="isSaving ? 'Saving...' : 'Save'"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="footer-content" x-show="currentTab === 'all'">
+                        <div class="flex items-center justify-end gap-2">
+                            <button type="button" class="button button-secondary" @click="closeModal()">
+                                Close
+                            </button>
+                            <button type="button" class="button button-primary" @click="saveItem()" :disabled="isSaving">
+                                <template x-if="isSaving">
+                                    <i class="bi bi-arrow-clockwise" style="animation: spin 1s linear infinite;"></i>
+                                </template>
+                                <span x-text="isSaving ? 'Saving...' : 'Save'"></span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
