@@ -37,6 +37,21 @@ const editorTemplate = `
                                     </div>
                                 </template>
                                 
+                                <!-- Date Input -->
+                                <template x-if="field.type === 'date'">
+                                    <div>
+                                        <label class="form-label" :for="field.key" x-text="field.label"></label>
+                                        <input 
+                                            type="date" 
+                                            :id="field.key"
+                                            :name="field.key"
+                                            class="form-input" 
+                                            x-model="formData[field.key]"
+                                            :required="field.required"
+                                        >
+                                    </div>
+                                </template>
+                                
                                 <!-- Textarea with Rich Text Editor -->
                                 <template x-if="field.type === 'textarea'">
                                     <div>
@@ -509,7 +524,9 @@ function createDynamicEditor() {
 				};
 
 				// Determine field type based on key name and value
-				if (key === 'image') {
+				if (key === 'date') {
+					field.type = 'date';
+				} else if (key === 'image') {
 					field.type = 'image';
 				} else if (key === 'gallery' || key === 'images') {
 					field.type = 'gallery';
