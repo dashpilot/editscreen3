@@ -1,13 +1,27 @@
 {
 	"categories": ["Technology", "Design", "Business", "Lifestyle", "JavaScript", "UI/UX", "CSS"],
-	"links": [
-		{
-			"id": 1,
-			"name": "Magazine",
-			"url": "#",
-			"active": true
-		}
-	],
+	"navigation": {
+		"links": [
+			{
+				"id": 1,
+				"name": "Magazine",
+				"url": "#",
+				"active": true
+			},
+			{
+				"id": 2,
+				"name": "Authors",
+				"url": "#",
+				"active": false
+			},
+			{
+				"id": 3,
+				"name": "Podcast",
+				"url": "#",
+				"active": false
+			}
+		]
+	},
 	"info": {
 		"title": "My Blog",
 		"description": "A place where I share my thoughts on web development and design.",

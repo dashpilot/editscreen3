@@ -197,12 +197,12 @@
 					</template>
 				</div>
 			</div>
-			<div data-edit="links" class="info-section">
-				<h2 style="font-size: 1.5rem; font-weight: 600; margin: 0 0 1rem 0">Links</h2>
+			<div data-edit="navigation" class="info-section">
+				<h2 style="font-size: 1.5rem; font-weight: 600; margin: 0 0 1rem 0">Navigation</h2>
 				<div style="display: flex; flex-direction: column; gap: 0.5rem">
-					<template x-for="link in links" :key="link.id">
+					<template x-for="link in navigation.links" :key="link.id">
 						<div
-							:data-edit="'links.' + link.id"
+							:data-edit="'navigation.links.' + link.id"
 							style="
 								padding: 0.5rem;
 								border: 1px solid #e0e0e0;
@@ -261,7 +261,7 @@
 					info: { title: 'Loading...', description: 'Loading...' },
 					posts: [],
 					categories: [],
-					links: [],
+					navigation: { links: [] },
 
 					async loadData() {
 						try {
@@ -270,7 +270,7 @@
 							this.info = data.info || { title: 'Loading...', description: 'Loading...' };
 							this.posts = data.posts || [];
 							this.categories = data.categories || [];
-							this.links = data.links || [];
+							this.navigation = data.navigation || { links: [] };
 						} catch (error) {
 							console.error('Error loading data:', error);
 						}

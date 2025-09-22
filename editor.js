@@ -474,12 +474,12 @@ function createDynamicEditor() {
 
 			console.log('Opening editor for:', editValue);
 
-			// Parse the edit value (e.g., "site", "pages.1", "articles.2")
+			// Parse the edit value (e.g., "site", "pages.1", "navigation.links.1")
 			const parts = editValue.split('.');
-			const key = parts[0];
 
 			if (parts.length === 1) {
-				// Editing an object (e.g., "site") or top-level array (e.g., "categories")
+				// Editing a top-level object or array (e.g., "site", "categories")
+				const key = parts[0];
 				this.editType = 'object';
 				const dataValue = this.data[key];
 
@@ -492,14 +492,16 @@ function createDynamicEditor() {
 
 				this.collectionName = key;
 				this.itemTypeName = this.formatLabel(key);
-			} else {
-				// Editing an item in an array (e.g., "pages.1")
+			} else if (parts.length === 2) {
+				// Editing an item in a top-level array (e.g., "pages.1")
+				const key = parts[0];
+				const itemId = parseInt(parts[1]);
+
 				this.editType = 'collection';
 				this.collectionName = key;
 				this.itemTypeName = this.formatLabel(key.slice(0, -1)); // Remove 's' from plural
 
 				const collection = this.data[key] || [];
-				const itemId = parseInt(parts[1]);
 
 				// Find item by ID
 				this.currentItem = collection.find((item) => item.id === itemId);
@@ -511,6 +513,32 @@ function createDynamicEditor() {
 
 				// Set up collection items for "All Items" view
 				this.collectionItems = [...collection];
+			} else if (parts.length === 3) {
+				// Editing an item in a nested array (e.g., "navigation.links.1")
+				const parentKey = parts[0];
+				const arrayKey = parts[1];
+				const itemId = parseInt(parts[2]);
+
+				this.editType = 'collection';
+				this.collectionName = `${parentKey}.${arrayKey}`;
+				this.itemTypeName = this.formatLabel(arrayKey.slice(0, -1)); // Remove 's' from plural
+
+				const parentObject = this.data[parentKey] || {};
+				const collection = parentObject[arrayKey] || [];
+
+				// Find item by ID
+				this.currentItem = collection.find((item) => item.id === itemId);
+
+				if (!this.currentItem) {
+					console.error('Item not found:', editValue);
+					return;
+				}
+
+				// Set up collection items for "All Items" view
+				this.collectionItems = [...collection];
+			} else {
+				console.error('Unsupported edit path depth:', editValue);
+				return;
 			}
 
 			this.generateFormFields(this.currentItem);
@@ -627,6 +655,33 @@ function createDynamicEditor() {
 			}
 		},
 
+		getCollectionByPath(path) {
+			// Helper function to get collection by path (handles nested paths like "navigation.links")
+			if (path.includes('.')) {
+				const parts = path.split('.');
+				const parentKey = parts[0];
+				const arrayKey = parts[1];
+				return this.data[parentKey][arrayKey];
+			} else {
+				return this.data[path];
+			}
+		},
+
+		setCollectionByPath(path, value) {
+			// Helper function to set collection by path
+			if (path.includes('.')) {
+				const parts = path.split('.');
+				const parentKey = parts[0];
+				const arrayKey = parts[1];
+				if (!this.data[parentKey]) {
+					this.data[parentKey] = {};
+				}
+				this.data[parentKey][arrayKey] = value;
+			} else {
+				this.data[path] = value;
+			}
+		},
+
 		switchTab(tab) {
 			// Don't allow switching to 'all' tab for objects
 			if (tab === 'all' && this.editType !== 'collection') {
@@ -636,7 +691,7 @@ function createDynamicEditor() {
 			this.currentTab = tab;
 			if (tab === 'all' && this.editType === 'collection') {
 				// Refresh collection items
-				this.collectionItems = this.data[this.collectionName] || [];
+				this.collectionItems = this.getCollectionByPath(this.collectionName) || [];
 			}
 
 			// Reset scroll to top when switching tabs
@@ -699,7 +754,7 @@ function createDynamicEditor() {
 				// Update local data first
 				if (this.editType === 'collection') {
 					// Update item in collection array
-					const collection = this.data[this.collectionName];
+					const collection = this.getCollectionByPath(this.collectionName);
 					const index = collection.findIndex((item) => item.id === this.currentItem.id);
 
 					if (index !== -1) {
@@ -803,7 +858,7 @@ function createDynamicEditor() {
 
 		addNewItem() {
 			if (this.editType === 'collection') {
-				const collection = this.data[this.collectionName];
+				const collection = this.getCollectionByPath(this.collectionName);
 
 				// Calculate next ID
 				let nextId = 1;
@@ -845,13 +900,15 @@ function createDynamicEditor() {
 				}
 
 				// Add to collection
-				if (!this.data[this.collectionName]) {
-					this.data[this.collectionName] = [];
+				let collection = this.getCollectionByPath(this.collectionName);
+				if (!collection) {
+					collection = [];
+					this.setCollectionByPath(this.collectionName, collection);
 				}
-				this.data[this.collectionName].push(template);
+				collection.push(template);
 
 				// Update reactive data
-				this.collectionItems = [...this.data[this.collectionName]];
+				this.collectionItems = [...collection];
 
 				// Edit the new item
 				this.editItem(template);
@@ -869,7 +926,7 @@ function createDynamicEditor() {
 		},
 
 		deleteItem(item) {
-			const collection = this.data[this.collectionName];
+			const collection = this.getCollectionByPath(this.collectionName);
 
 			// Prevent deletion of the last item in a collection
 			if (collection.length <= 1) {
@@ -1008,7 +1065,7 @@ function createDynamicEditor() {
 
 			if (newIndex >= 0 && newIndex < this.collectionItems.length) {
 				// Update both the main data and reactive data
-				const items = this.data[this.collectionName];
+				const items = this.getCollectionByPath(this.collectionName);
 				const item = items.splice(index, 1)[0];
 				items.splice(newIndex, 0, item);
 
