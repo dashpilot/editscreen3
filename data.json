@@ -1,5 +1,13 @@
 {
 	"categories": ["Technology", "Design", "Business", "Lifestyle", "JavaScript", "UI/UX", "CSS"],
+	"links": [
+		{
+			"id": 1,
+			"name": "Magazine",
+			"url": "#",
+			"active": true
+		}
+	],
 	"info": {
 		"title": "My Blog",
 		"description": "A place where I share my thoughts on web development and design.",

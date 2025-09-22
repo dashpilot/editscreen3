@@ -197,6 +197,26 @@
 					</template>
 				</div>
 			</div>
+			<div data-edit="links" class="info-section">
+				<h2 style="font-size: 1.5rem; font-weight: 600; margin: 0 0 1rem 0">Links</h2>
+				<div style="display: flex; flex-direction: column; gap: 0.5rem">
+					<template x-for="link in links" :key="link.id">
+						<div
+							:data-edit="'links.' + link.id"
+							style="
+								padding: 0.5rem;
+								border: 1px solid #e0e0e0;
+								border-radius: 0.5rem;
+								cursor: pointer;
+							"
+						>
+							<div style="font-weight: 600" x-text="link.name"></div>
+							<div style="font-size: 0.875rem; color: #666" x-text="link.url"></div>
+							<div style="font-size: 0.875rem" x-text="'Active: ' + link.active"></div>
+						</div>
+					</template>
+				</div>
+			</div>
 			<div class="posts-grid">
 				<template x-for="post in posts" :key="post.id">
 					<div class="post-card" :data-edit="'posts.' + post.id">
@@ -241,6 +261,7 @@
 					info: { title: 'Loading...', description: 'Loading...' },
 					posts: [],
 					categories: [],
+					links: [],
 
 					async loadData() {
 						try {
@@ -249,6 +270,7 @@
 							this.info = data.info || { title: 'Loading...', description: 'Loading...' };
 							this.posts = data.posts || [];
 							this.categories = data.categories || [];
+							this.links = data.links || [];
 						} catch (error) {
 							console.error('Error loading data:', error);
 						}

@@ -515,6 +515,9 @@ function createDynamicEditor() {
 
 			this.generateFormFields(this.currentItem);
 			this.formData = { ...this.currentItem };
+
+			// Ensure boolean values remain as booleans
+			this.preserveDataTypes();
 			this.currentTab = 'edit';
 			this.isOpen = true;
 
@@ -610,6 +613,18 @@ function createDynamicEditor() {
 					.replace(/([A-Z])/g, ' $1')
 					.replace(/_/g, ' ')
 			);
+		},
+
+		preserveDataTypes() {
+			// Ensure boolean values in formData remain as booleans
+			for (const [key, value] of Object.entries(this.currentItem)) {
+				if (typeof value === 'boolean') {
+					// Convert string representations back to boolean if needed
+					if (typeof this.formData[key] === 'string') {
+						this.formData[key] = this.formData[key] === 'true';
+					}
+				}
+			}
 		},
 
 		switchTab(tab) {
@@ -849,6 +864,7 @@ function createDynamicEditor() {
 			this.currentItem = item;
 			this.generateFormFields(item);
 			this.formData = { ...item };
+			this.preserveDataTypes();
 			this.switchTab('edit');
 		},
 
