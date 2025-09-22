@@ -858,7 +858,7 @@ function createDynamicEditor() {
 
 		addNewItem() {
 			if (this.editType === 'collection') {
-				const collection = this.getCollectionByPath(this.collectionName);
+				let collection = this.getCollectionByPath(this.collectionName);
 
 				// Calculate next ID
 				let nextId = 1;
@@ -899,8 +899,7 @@ function createDynamicEditor() {
 					};
 				}
 
-				// Add to collection
-				let collection = this.getCollectionByPath(this.collectionName);
+				// Add to collection (ensure collection exists)
 				if (!collection) {
 					collection = [];
 					this.setCollectionByPath(this.collectionName, collection);
