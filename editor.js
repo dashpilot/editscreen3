@@ -558,7 +558,8 @@ function createDynamicEditor() {
 					];
 				} else if (key === 'category') {
 					field.type = 'select';
-					field.options = [
+					// Use categories from data if available, otherwise fallback to hardcoded options
+					field.options = this.data.categories || [
 						'Technology',
 						'Design',
 						'Business',

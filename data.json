@@ -1,4 +1,5 @@
 {
+	"categories": ["Technology", "Design", "Business", "Lifestyle", "JavaScript", "UI/UX", "CSS"],
 	"info": {
 		"title": "My Blog",
 		"description": "A place where I share my thoughts on web development and design.",
