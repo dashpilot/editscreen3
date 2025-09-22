@@ -479,9 +479,17 @@ function createDynamicEditor() {
 			const key = parts[0];
 
 			if (parts.length === 1) {
-				// Editing an object (e.g., "site")
+				// Editing an object (e.g., "site") or top-level array (e.g., "categories")
 				this.editType = 'object';
-				this.currentItem = this.data[key] || {};
+				const dataValue = this.data[key];
+
+				// If it's an array, wrap it in an object for form generation
+				if (Array.isArray(dataValue)) {
+					this.currentItem = { [key]: dataValue };
+				} else {
+					this.currentItem = dataValue || {};
+				}
+
 				this.collectionName = key;
 				this.itemTypeName = this.formatLabel(key);
 			} else {
@@ -543,7 +551,13 @@ function createDynamicEditor() {
 					if (key === 'gallery' || key === 'images') {
 						field.type = 'gallery';
 					} else if (value.length === 0 || typeof value[0] === 'string') {
-						field.type = 'tags';
+						// Use 'array' for top-level arrays (when the key matches the collection being edited)
+						// Use 'tags' for arrays that are properties within objects (like post tags)
+						if (key === this.collectionName) {
+							field.type = 'array';
+						} else {
+							field.type = 'tags';
+						}
 					} else {
 						// For other arrays of objects, create simple text inputs
 						field.type = 'array';
@@ -682,9 +696,19 @@ function createDynamicEditor() {
 						return;
 					}
 				} else {
-					// Update object directly
-					this.data[this.collectionName] = { ...this.formData };
-					console.log('Object updated:', this.collectionName);
+					// Update object directly, or unwrap array if it was wrapped
+					if (
+						this.formData[this.collectionName] &&
+						Array.isArray(this.formData[this.collectionName])
+					) {
+						// This was a wrapped array, so unwrap it
+						this.data[this.collectionName] = [...this.formData[this.collectionName]];
+						console.log('Array updated:', this.collectionName);
+					} else {
+						// Regular object update
+						this.data[this.collectionName] = { ...this.formData };
+						console.log('Object updated:', this.collectionName);
+					}
 				}
 
 				this.currentItem = { ...this.formData };

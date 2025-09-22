@@ -181,6 +181,22 @@
 		</header>
 
 		<main class="main-content">
+			<div data-edit="categories" class="info-section">
+				<h2 style="font-size: 1.5rem; font-weight: 600; margin: 0 0 1rem 0">Categories</h2>
+				<div style="display: flex; flex-wrap: wrap; gap: 0.5rem">
+					<template x-for="category in categories" :key="category">
+						<span
+							style="
+								background: #f0f0f0;
+								padding: 0.25rem 0.75rem;
+								border-radius: 1rem;
+								font-size: 0.875rem;
+							"
+							x-text="category"
+						></span>
+					</template>
+				</div>
+			</div>
 			<div class="posts-grid">
 				<template x-for="post in posts" :key="post.id">
 					<div class="post-card" :data-edit="'posts.' + post.id">
@@ -224,6 +240,7 @@
 				return {
 					info: { title: 'Loading...', description: 'Loading...' },
 					posts: [],
+					categories: [],
 
 					async loadData() {
 						try {
@@ -231,6 +248,7 @@
 							const data = await response.json();
 							this.info = data.info || { title: 'Loading...', description: 'Loading...' };
 							this.posts = data.posts || [];
+							this.categories = data.categories || [];
 						} catch (error) {
 							console.error('Error loading data:', error);
 						}
