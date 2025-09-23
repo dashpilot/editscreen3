@@ -306,7 +306,7 @@ const editorTemplate = `
                                             <template x-for="(arrayItem, index) in formData[field.key]" :key="index">
                                                 <div class="array-item-group">
                                                     <div class="array-item-header">
-                                                        <span class="array-item-title" x-text="'Item ' + (index + 1)"></span>
+                                                        <span class="array-item-title" x-text="field.key === 'categories' ? 'Category ' + (index + 1) : 'Item ' + (index + 1)"></span>
                                                         <div class="array-item-actions">
                                                             <!-- Special handling for categories - show reorder and delete buttons -->
                                                             <template x-if="field.key === 'categories'">
