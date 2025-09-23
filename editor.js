@@ -247,49 +247,79 @@ const editorTemplate = `
                                 <template x-if="field.type === 'array'">
                                     <div>
                                         <label class="form-label" x-text="field.label"></label>
-                                        <div class="array-container">
-                                            <template x-for="(arrayItem, index) in formData[field.key]" :key="index">
-                                                <div class="array-item-group">
-                                                    <div class="array-item-header">
-                                                        <span class="array-item-title" x-text="'Item ' + (index + 1)"></span>
-                                                        <button type="button" class="array-remove-btn" @click="removeArrayItem(field.key, index)" title="Remove">
-                                                            <i class="bi bi-trash"></i>
-                                                        </button>
+                                        <!-- Special handling for categories -->
+                                        <template x-if="field.key === 'categories'">
+                                            <div class="categories-container">
+                                                <template x-for="(categoryItem, index) in formData[field.key]" :key="index">
+                                                    <div class="category-item">
+                                                        <div class="category-content">
+                                                            <span class="category-name" x-text="categoryItem"></span>
+                                                        </div>
+                                                        <div class="category-actions">
+                                                            <button type="button" class="action-btn move" @click="moveArrayItem(field.key, index, -1)" :disabled="index === 0" title="Move up">
+                                                                <i class="bi bi-arrow-up"></i>
+                                                            </button>
+                                                            <button type="button" class="action-btn move" @click="moveArrayItem(field.key, index, 1)" :disabled="index === formData[field.key].length - 1" title="Move down">
+                                                                <i class="bi bi-arrow-down"></i>
+                                                            </button>
+                                                            <button type="button" class="action-btn delete" @click="deleteCategoryItem(field.key, index)" title="Delete category">
+                                                                <i class="bi bi-trash"></i>
+                                                            </button>
+                                                        </div>
                                                     </div>
-                                                    <!-- Handle string arrays -->
-                                                    <template x-if="typeof arrayItem === 'string'">
-                                                        <div class="array-item">
-                                                            <input 
-                                                                type="text" 
-                                                                class="form-input" 
-                                                                :placeholder="'Item ' + (index + 1)"
-                                                                x-model="formData[field.key][index]"
-                                                            >
+                                                </template>
+                                                <button type="button" class="button button-secondary array-add-btn" @click="addArrayItem(field.key)">
+                                                    <i class="bi bi-plus"></i>
+                                                    <span>Add Category</span>
+                                                </button>
+                                            </div>
+                                        </template>
+                                        <!-- Regular array handling for non-categories -->
+                                        <template x-if="field.key !== 'categories'">
+                                            <div class="array-container">
+                                                <template x-for="(arrayItem, index) in formData[field.key]" :key="index">
+                                                    <div class="array-item-group">
+                                                        <div class="array-item-header">
+                                                            <span class="array-item-title" x-text="'Item ' + (index + 1)"></span>
+                                                            <button type="button" class="array-remove-btn" @click="removeArrayItem(field.key, index)" title="Remove">
+                                                                <i class="bi bi-trash"></i>
+                                                            </button>
                                                         </div>
-                                                    </template>
-                                                    <!-- Handle object arrays -->
-                                                    <template x-if="typeof arrayItem === 'object' && arrayItem !== null">
-                                                        <div class="array-object-fields">
-                                                            <template x-for="(value, objKey) in arrayItem" :key="objKey">
-                                                                <div class="array-object-field">
-                                                                    <label class="form-label" x-text="objKey.charAt(0).toUpperCase() + objKey.slice(1).replace(/([A-Z])/g, ' $1').replace(/_/g, ' ')"></label>
-                                                                    <input 
-                                                                        type="text" 
-                                                                        class="form-input" 
-                                                                        :placeholder="objKey"
-                                                                        x-model="formData[field.key][index][objKey]"
-                                                                    >
-                                                                </div>
-                                                            </template>
-                                                        </div>
-                                                    </template>
-                                                </div>
-                                            </template>
-                                            <button type="button" class="button button-secondary array-add-btn" @click="addArrayItem(field.key)">
-                                                <i class="bi bi-plus"></i>
-                                                <span>Add Item</span>
-                                            </button>
-                                        </div>
+                                                        <!-- Handle string arrays -->
+                                                        <template x-if="typeof arrayItem === 'string'">
+                                                            <div class="array-item">
+                                                                <input 
+                                                                    type="text" 
+                                                                    class="form-input" 
+                                                                    :placeholder="'Item ' + (index + 1)"
+                                                                    x-model="formData[field.key][index]"
+                                                                >
+                                                            </div>
+                                                        </template>
+                                                        <!-- Handle object arrays -->
+                                                        <template x-if="typeof arrayItem === 'object' && arrayItem !== null">
+                                                            <div class="array-object-fields">
+                                                                <template x-for="(value, objKey) in arrayItem" :key="objKey">
+                                                                    <div class="array-object-field">
+                                                                        <label class="form-label" x-text="objKey.charAt(0).toUpperCase() + objKey.slice(1).replace(/([A-Z])/g, ' $1').replace(/_/g, ' ')"></label>
+                                                                        <input 
+                                                                            type="text" 
+                                                                            class="form-input" 
+                                                                            :placeholder="objKey"
+                                                                            x-model="formData[field.key][index][objKey]"
+                                                                        >
+                                                                    </div>
+                                                                </template>
+                                                            </div>
+                                                        </template>
+                                                    </div>
+                                                </template>
+                                                <button type="button" class="button button-secondary array-add-btn" @click="addArrayItem(field.key)">
+                                                    <i class="bi bi-plus"></i>
+                                                    <span>Add Item</span>
+                                                </button>
+                                            </div>
+                                        </template>
                                     </div>
                                 </template>
                             </div>
@@ -480,18 +510,37 @@ function createDynamicEditor() {
 			if (parts.length === 1) {
 				// Editing a top-level object or array (e.g., "site", "categories")
 				const key = parts[0];
-				this.editType = 'object';
 				const dataValue = this.data[key];
 
-				// If it's an array, wrap it in an object for form generation
-				if (Array.isArray(dataValue)) {
-					this.currentItem = { [key]: dataValue };
-				} else {
-					this.currentItem = dataValue || {};
-				}
+				// Special handling for categories - treat as collection
+				if (key === 'categories' && Array.isArray(dataValue)) {
+					this.editType = 'collection';
+					this.collectionName = key;
+					this.itemTypeName = 'Category';
 
-				this.collectionName = key;
-				this.itemTypeName = this.formatLabel(key);
+					// Create collection items with IDs for categories
+					this.collectionItems = dataValue.map((category, index) => ({
+						id: index,
+						_idx: index,
+						name: category,
+						title: category
+					}));
+
+					// Set current item to first category or empty
+					this.currentItem = this.collectionItems[0] || { id: 0, _idx: 0, name: '', title: '' };
+				} else {
+					this.editType = 'object';
+
+					// If it's an array, wrap it in an object for form generation
+					if (Array.isArray(dataValue)) {
+						this.currentItem = { [key]: dataValue };
+					} else {
+						this.currentItem = dataValue || {};
+					}
+
+					this.collectionName = key;
+					this.itemTypeName = this.formatLabel(key);
+				}
 			} else if (parts.length === 2) {
 				// Editing an item in a top-level array (e.g., "pages.1")
 				const key = parts[0];
@@ -745,6 +794,25 @@ function createDynamicEditor() {
 			this.formData[fieldKey].splice(index, 1);
 		},
 
+		moveArrayItem(fieldKey, index, direction) {
+			const items = this.formData[fieldKey];
+			const newIndex = index + direction;
+
+			if (newIndex >= 0 && newIndex < items.length) {
+				const item = items.splice(index, 1)[0];
+				items.splice(newIndex, 0, item);
+			}
+		},
+
+		deleteCategoryItem(fieldKey, index) {
+			const categoryName = this.formData[fieldKey][index];
+			const confirmMessage = `Delete "${categoryName}"? Make sure to update any posts using this category.`;
+
+			if (confirm(confirmMessage)) {
+				this.formData[fieldKey].splice(index, 1);
+			}
+		},
+
 		async saveItem() {
 			if (this.isSaving) return; // Prevent double-clicking
 
@@ -753,17 +821,24 @@ function createDynamicEditor() {
 			try {
 				// Update local data first
 				if (this.editType === 'collection') {
-					// Update item in collection array
-					const collection = this.getCollectionByPath(this.collectionName);
-					const index = collection.findIndex((item) => item.id === this.currentItem.id);
-
-					if (index !== -1) {
-						collection[index] = { ...this.formData };
-						this.collectionItems = [...collection];
-						console.log('Item updated in collection:', this.collectionName);
+					// Special handling for categories
+					if (this.collectionName === 'categories') {
+						// Update categories array from collection items
+						this.data.categories = this.collectionItems.map((item) => item.name || item.title);
+						console.log('Categories updated:', this.data.categories);
 					} else {
-						console.error('Item not found for update');
-						return;
+						// Update item in collection array
+						const collection = this.getCollectionByPath(this.collectionName);
+						const index = collection.findIndex((item) => item.id === this.currentItem.id);
+
+						if (index !== -1) {
+							collection[index] = { ...this.formData };
+							this.collectionItems = [...collection];
+							console.log('Item updated in collection:', this.collectionName);
+						} else {
+							console.error('Item not found for update');
+							return;
+						}
 					}
 				} else {
 					// Update object directly, or unwrap array if it was wrapped
@@ -858,61 +933,78 @@ function createDynamicEditor() {
 
 		addNewItem() {
 			if (this.editType === 'collection') {
-				let collection = this.getCollectionByPath(this.collectionName);
+				// Special handling for categories
+				if (this.collectionName === 'categories') {
+					const newCategoryName = prompt('Enter new category name:');
+					if (newCategoryName && newCategoryName.trim()) {
+						const nextId = this.collectionItems.length;
+						const newCategory = {
+							id: nextId,
+							_idx: nextId,
+							name: newCategoryName.trim(),
+							title: newCategoryName.trim()
+						};
 
-				// Calculate next ID
-				let nextId = 1;
-				if (collection && collection.length > 0) {
-					const existingIds = collection
-						.map((item) => item.id)
-						.filter((id) => typeof id === 'number')
-						.sort((a, b) => b - a); // Sort descending
-
-					if (existingIds.length > 0) {
-						nextId = existingIds[0] + 1;
-					}
-				}
-
-				// Create template based on existing item structure
-				let template = {};
-				if (collection && collection.length > 0) {
-					const firstItem = collection[0];
-					for (const [key, value] of Object.entries(firstItem)) {
-						if (key === 'id') {
-							template[key] = nextId;
-						} else if (Array.isArray(value)) {
-							template[key] = [];
-						} else if (typeof value === 'boolean') {
-							template[key] = false;
-						} else if (typeof value === 'number') {
-							template[key] = 0;
-						} else {
-							template[key] = '';
-						}
+						this.collectionItems.push(newCategory);
+						console.log('New category added:', newCategoryName);
 					}
 				} else {
-					// Default template if no items exist
-					template = {
-						id: nextId,
-						title: '',
-						content: ''
-					};
+					let collection = this.getCollectionByPath(this.collectionName);
+
+					// Calculate next ID
+					let nextId = 1;
+					if (collection && collection.length > 0) {
+						const existingIds = collection
+							.map((item) => item.id)
+							.filter((id) => typeof id === 'number')
+							.sort((a, b) => b - a); // Sort descending
+
+						if (existingIds.length > 0) {
+							nextId = existingIds[0] + 1;
+						}
+					}
+
+					// Create template based on existing item structure
+					let template = {};
+					if (collection && collection.length > 0) {
+						const firstItem = collection[0];
+						for (const [key, value] of Object.entries(firstItem)) {
+							if (key === 'id') {
+								template[key] = nextId;
+							} else if (Array.isArray(value)) {
+								template[key] = [];
+							} else if (typeof value === 'boolean') {
+								template[key] = false;
+							} else if (typeof value === 'number') {
+								template[key] = 0;
+							} else {
+								template[key] = '';
+							}
+						}
+					} else {
+						// Default template if no items exist
+						template = {
+							id: nextId,
+							title: '',
+							content: ''
+						};
+					}
+
+					// Add to collection (ensure collection exists)
+					if (!collection) {
+						collection = [];
+						this.setCollectionByPath(this.collectionName, collection);
+					}
+					collection.push(template);
+
+					// Update reactive data
+					this.collectionItems = [...collection];
+
+					// Edit the new item
+					this.editItem(template);
+
+					console.log('New item added with ID:', nextId);
 				}
-
-				// Add to collection (ensure collection exists)
-				if (!collection) {
-					collection = [];
-					this.setCollectionByPath(this.collectionName, collection);
-				}
-				collection.push(template);
-
-				// Update reactive data
-				this.collectionItems = [...collection];
-
-				// Edit the new item
-				this.editItem(template);
-
-				console.log('New item added with ID:', nextId);
 			}
 		},
 
@@ -925,27 +1017,46 @@ function createDynamicEditor() {
 		},
 
 		deleteItem(item) {
-			const collection = this.getCollectionByPath(this.collectionName);
+			// Special handling for categories
+			if (this.collectionName === 'categories') {
+				const categoryName = item.name || item.title;
+				const confirmMessage = `Delete "${categoryName}"? Make sure to update any posts using this category.`;
 
-			// Prevent deletion of the last item in a collection
-			if (collection.length <= 1) {
-				alert(
-					'Cannot delete the last item in this collection. At least one item must remain to keep the editor accessible.'
-				);
-				return;
-			}
+				if (confirm(confirmMessage)) {
+					const index = this.collectionItems.findIndex((i) => i.id === item.id);
+					if (index !== -1) {
+						this.collectionItems.splice(index, 1);
+						console.log('Category deleted:', categoryName);
 
-			if (confirm('Are you sure you want to delete this item?')) {
-				const index = collection.findIndex((i) => i.id === item.id);
+						// Close modal if we're editing the deleted item
+						if (this.currentItem && this.currentItem.id === item.id) {
+							this.closeModal();
+						}
+					}
+				}
+			} else {
+				const collection = this.getCollectionByPath(this.collectionName);
 
-				if (index !== -1) {
-					collection.splice(index, 1);
-					this.collectionItems = [...collection];
-					console.log('Item deleted');
+				// Prevent deletion of the last item in a collection
+				if (collection.length <= 1) {
+					alert(
+						'Cannot delete the last item in this collection. At least one item must remain to keep the editor accessible.'
+					);
+					return;
+				}
 
-					// Close modal if we're editing the deleted item
-					if (this.currentItem && this.currentItem.id === item.id) {
-						this.closeModal();
+				if (confirm('Are you sure you want to delete this item?')) {
+					const index = collection.findIndex((i) => i.id === item.id);
+
+					if (index !== -1) {
+						collection.splice(index, 1);
+						this.collectionItems = [...collection];
+						console.log('Item deleted');
+
+						// Close modal if we're editing the deleted item
+						if (this.currentItem && this.currentItem.id === item.id) {
+							this.closeModal();
+						}
 					}
 				}
 			}
@@ -1063,19 +1174,38 @@ function createDynamicEditor() {
 			const newIndex = index + direction;
 
 			if (newIndex >= 0 && newIndex < this.collectionItems.length) {
-				// Update both the main data and reactive data
-				const items = this.getCollectionByPath(this.collectionName);
-				const item = items.splice(index, 1)[0];
-				items.splice(newIndex, 0, item);
+				// Special handling for categories
+				if (this.collectionName === 'categories') {
+					// Move item in collection items array
+					const item = this.collectionItems.splice(index, 1)[0];
+					this.collectionItems.splice(newIndex, 0, item);
 
-				// Update reactive array
-				this.collectionItems = [...items];
+					// Update IDs to match new positions
+					this.collectionItems.forEach((cat, idx) => {
+						cat.id = idx;
+						cat._idx = idx;
+					});
 
-				console.log('Item moved:', {
-					from: index,
-					to: newIndex,
-					item: item.title || item.id
-				});
+					console.log('Category moved:', {
+						from: index,
+						to: newIndex,
+						item: item.name || item.title
+					});
+				} else {
+					// Update both the main data and reactive data
+					const items = this.getCollectionByPath(this.collectionName);
+					const item = items.splice(index, 1)[0];
+					items.splice(newIndex, 0, item);
+
+					// Update reactive array
+					this.collectionItems = [...items];
+
+					console.log('Item moved:', {
+						from: index,
+						to: newIndex,
+						item: item.title || item.id
+					});
+				}
 			}
 		},
 
