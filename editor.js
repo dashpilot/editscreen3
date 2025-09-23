@@ -196,6 +196,61 @@ const editorTemplate = `
                                     </div>
                                 </template>
                                 
+                                <!-- YouTube Video -->
+                                <template x-if="field.type === 'youtube'">
+                                    <div>
+                                        <label class="form-label" x-text="field.label"></label>
+                                        <div class="youtube-input-container">
+                                            <div class="youtube-input-wrapper">
+                                                <input 
+                                                    type="text" 
+                                                    :id="field.key"
+                                                    :name="field.key"
+                                                    class="form-input youtube-input" 
+                                                    x-model="formData[field.key]"
+                                                    @input="handleYouTubeInput($event, field.key)"
+                                                    :required="field.required"
+                                                    placeholder="Enter YouTube ID or paste YouTube URL"
+                                                >
+                                                <div class="youtube-input-help">
+                                                    <i class="bi bi-info-circle"></i>
+                                                    <span>Paste a YouTube URL or enter just the video ID</span>
+                                                </div>
+                                            </div>
+                                            <template x-if="formData[field.key] && isValidYouTubeId(formData[field.key])">
+                                                <div class="youtube-preview">
+                                                    <div class="youtube-preview-header">
+                                                        <span class="youtube-preview-title">Video Preview</span>
+                                                        <button type="button" class="youtube-clear-btn" @click="formData[field.key] = ''" title="Clear video">
+                                                            <i class="bi bi-x"></i>
+                                                        </button>
+                                                    </div>
+                                                    <div class="youtube-thumbnail-wrapper">
+                                                        <img :src="'https://img.youtube.com/vi/' + formData[field.key] + '/hqdefault.jpg'" 
+                                                             alt="YouTube video thumbnail" 
+                                                             class="youtube-thumbnail"
+                                                             @error="$event.target.style.display = 'none'">
+                                                        <div class="youtube-play-overlay">
+                                                            <i class="bi bi-play-circle-fill"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div class="youtube-info">
+                                                        <div class="youtube-id">
+                                                            <strong>Video ID:</strong> <span x-text="formData[field.key]"></span>
+                                                        </div>
+                                                        <a :href="'https://www.youtube.com/watch?v=' + formData[field.key]" 
+                                                           target="_blank" 
+                                                           class="youtube-link">
+                                                            <i class="bi bi-box-arrow-up-right"></i>
+                                                            Watch on YouTube
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </template>
+                                
                                 <!-- Gallery/Images -->
                                 <template x-if="field.type === 'gallery'">
                                     <div>
@@ -624,6 +679,8 @@ function createDynamicEditor() {
 					field.type = 'date';
 				} else if (key === 'image') {
 					field.type = 'image';
+				} else if (key === 'video' || key === 'youtube') {
+					field.type = 'youtube';
 				} else if (key === 'gallery' || key === 'images') {
 					field.type = 'gallery';
 				} else if (Array.isArray(value)) {
@@ -1250,6 +1307,45 @@ function createDynamicEditor() {
 			if (this.formData[fieldKey]) {
 				element.innerHTML = this.formData[fieldKey];
 			}
+		},
+
+		handleYouTubeInput(event, fieldKey) {
+			const input = event.target.value.trim();
+			if (input) {
+				const videoId = this.extractYouTubeId(input);
+				if (videoId && videoId !== input) {
+					// Update the form data with just the ID
+					this.formData[fieldKey] = videoId;
+				}
+			}
+		},
+
+		extractYouTubeId(url) {
+			// Return as-is if it's already a video ID (11 characters, alphanumeric + _ -)
+			if (/^[a-zA-Z0-9_-]{11}$/.test(url)) {
+				return url;
+			}
+
+			// Extract from various YouTube URL formats
+			const patterns = [
+				/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([a-zA-Z0-9_-]{11})/,
+				/youtube\.com\/watch\?.*v=([a-zA-Z0-9_-]{11})/
+			];
+
+			for (const pattern of patterns) {
+				const match = url.match(pattern);
+				if (match && match[1]) {
+					return match[1];
+				}
+			}
+
+			// If no pattern matches, return the original input
+			return url;
+		},
+
+		isValidYouTubeId(id) {
+			// Check if it's a valid YouTube video ID format
+			return id && /^[a-zA-Z0-9_-]{11}$/.test(id);
 		}
 	};
 }
