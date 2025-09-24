@@ -881,33 +881,67 @@ function createDynamicEditor() {
 				return;
 			}
 
-			// Update all posts that use the old category name
-			if (this.data && this.data.posts && Array.isArray(this.data.posts)) {
+			// Find the content array - could be 'posts', 'articles', or other names
+			let contentArray = null;
+			let contentArrayName = '';
+
+			if (this.data) {
+				// Check for common content array names
+				const possibleNames = ['posts', 'articles', 'items', 'content', 'entries'];
+				for (const name of possibleNames) {
+					if (this.data[name] && Array.isArray(this.data[name])) {
+						contentArray = this.data[name];
+						contentArrayName = name;
+						break;
+					}
+				}
+			}
+
+			// Update all items that use the old category name
+			if (contentArray) {
 				let updatedCount = 0;
-				this.data.posts.forEach((post) => {
-					if (post.category === oldCategoryName) {
-						post.category = trimmedNewName;
+				contentArray.forEach((item) => {
+					if (item.category === oldCategoryName) {
+						item.category = trimmedNewName;
 						updatedCount++;
 					}
 				});
 
 				if (updatedCount > 0) {
 					console.log(
-						`✅ Updated "${oldCategoryName}" → "${trimmedNewName}" in ${updatedCount} posts`
+						`✅ Updated "${oldCategoryName}" → "${trimmedNewName}" in ${updatedCount} ${contentArrayName}`
 					);
 				}
 			}
 		},
 
 		removeCategoryFromPosts(categoryName) {
-			// Remove category from all posts when category is deleted
-			if (this.data.posts && Array.isArray(this.data.posts)) {
-				this.data.posts.forEach((post) => {
-					if (post.category === categoryName) {
-						post.category = ''; // Set to empty or could set to 'Uncategorized'
+			// Find the content array - could be 'posts', 'articles', or other names
+			let contentArray = null;
+			let contentArrayName = '';
+
+			if (this.data) {
+				// Check for common content array names
+				const possibleNames = ['posts', 'articles', 'items', 'content', 'entries'];
+				for (const name of possibleNames) {
+					if (this.data[name] && Array.isArray(this.data[name])) {
+						contentArray = this.data[name];
+						contentArrayName = name;
+						break;
+					}
+				}
+			}
+
+			// Remove category from all items when category is deleted
+			if (contentArray) {
+				let removedCount = 0;
+				contentArray.forEach((item) => {
+					if (item.category === categoryName) {
+						item.category = ''; // Set to empty or could set to 'Uncategorized'
+						removedCount++;
 					}
 				});
-				console.log(`Removed category "${categoryName}" from all posts`);
+				console.log(`Removed category "${categoryName}" from ${removedCount} ${contentArrayName}`);
 			}
 		},
 
