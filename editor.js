@@ -311,9 +311,10 @@ const editorTemplate = `
                                                             <input 
                                                                 type="text" 
                                                                 class="category-name-input" 
-                                                                x-model="formData[field.key][index]"
-                                                                @focus="$event.target.dataset.originalValue = $event.target.value"
-                                                                @blur="updateCategoryInPosts(field.key, index, $event.target.value, $event.target.dataset.originalValue); $event.target.value = $event.target.value.trim()"
+                                                                :value="formData[field.key][index]"
+                                                                @focus="categoryOriginalValues[field.key + '_' + index] = $event.target.value"
+                                                                @input="formData[field.key][index] = $event.target.value"
+                                                                @blur="updateCategoryInPosts(field.key, index, $event.target.value, categoryOriginalValues[field.key + '_' + index]); $event.target.value = $event.target.value.trim(); formData[field.key][index] = $event.target.value.trim()"
                                                                 :placeholder="'Category name'"
                                                             >
                                                         </template>
@@ -485,6 +486,7 @@ function createDynamicEditor() {
 		itemTypeName: '',
 		data: {},
 		isSaving: false,
+		categoryOriginalValues: {},
 
 		// Sortable instance
 		sortableInstance: null,
@@ -869,51 +871,31 @@ function createDynamicEditor() {
 		},
 
 		updateCategoryInPosts(fieldKey, index, newCategoryName, oldCategoryName) {
-			console.log('updateCategoryInPosts called:', {
-				fieldKey,
-				index,
-				newCategoryName,
-				oldCategoryName,
-				hasData: !!this.data,
-				hasPosts: !!(this.data && this.data.posts),
-				postsLength: this.data && this.data.posts ? this.data.posts.length : 0
-			});
-
-			// Don't update if the name hasn't actually changed or is empty
-			if (!newCategoryName || !oldCategoryName || newCategoryName === oldCategoryName) {
-				console.log('Skipping update: no change or empty values');
+			// Skip if no change
+			if (!newCategoryName || !oldCategoryName || newCategoryName.trim() === oldCategoryName) {
 				return;
 			}
 
 			const trimmedNewName = newCategoryName.trim();
 			if (!trimmedNewName) {
-				console.log('Skipping update: trimmed name is empty');
 				return;
 			}
 
 			// Update all posts that use the old category name
 			if (this.data && this.data.posts && Array.isArray(this.data.posts)) {
 				let updatedCount = 0;
-				console.log('Checking posts for category updates...');
-
-				this.data.posts.forEach((post, postIndex) => {
-					console.log(
-						`Post ${postIndex}: category="${post.category}", looking for "${oldCategoryName}"`
-					);
+				this.data.posts.forEach((post) => {
 					if (post.category === oldCategoryName) {
-						console.log(
-							`Updating post ${postIndex} category from "${oldCategoryName}" to "${trimmedNewName}"`
-						);
 						post.category = trimmedNewName;
 						updatedCount++;
 					}
 				});
 
-				console.log(
-					`Updated ${updatedCount} posts from "${oldCategoryName}" to "${trimmedNewName}"`
-				);
-			} else {
-				console.log('No posts data available for update');
+				if (updatedCount > 0) {
+					console.log(
+						`✅ Updated "${oldCategoryName}" → "${trimmedNewName}" in ${updatedCount} posts`
+					);
+				}
 			}
 		},
 
