@@ -312,7 +312,8 @@ const editorTemplate = `
                                                                 type="text" 
                                                                 class="category-name-input" 
                                                                 x-model="formData[field.key][index]"
-                                                                @input="updateCategoryInPosts(field.key, index, $event.target.value, arrayItem)"
+                                                                @focus="$event.target.dataset.originalValue = $event.target.value"
+                                                                @input="updateCategoryInPosts(field.key, index, $event.target.value, $event.target.dataset.originalValue)"
                                                                 @blur="$event.target.value = $event.target.value.trim()"
                                                                 :placeholder="'Category name'"
                                                             >
@@ -870,20 +871,28 @@ function createDynamicEditor() {
 
 		updateCategoryInPosts(fieldKey, index, newCategoryName, oldCategoryName) {
 			// Don't update if the name hasn't actually changed or is empty
-			if (!newCategoryName || newCategoryName === oldCategoryName) {
+			if (!newCategoryName || !oldCategoryName || newCategoryName === oldCategoryName) {
+				return;
+			}
+
+			const trimmedNewName = newCategoryName.trim();
+			if (!trimmedNewName) {
 				return;
 			}
 
 			// Update all posts that use the old category name
 			if (this.data.posts && Array.isArray(this.data.posts)) {
+				let updatedCount = 0;
 				this.data.posts.forEach((post) => {
 					if (post.category === oldCategoryName) {
-						post.category = newCategoryName.trim();
+						post.category = trimmedNewName;
+						updatedCount++;
 					}
 				});
-				console.log(
-					`Updated category "${oldCategoryName}" to "${newCategoryName.trim()}" in all posts`
-				);
+				
+				if (updatedCount > 0) {
+					console.log(`Updated category "${oldCategoryName}" to "${trimmedNewName}" in ${updatedCount} posts`);
+				}
 			}
 		},
 
