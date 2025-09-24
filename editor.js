@@ -306,7 +306,7 @@ const editorTemplate = `
                                             <template x-for="(arrayItem, index) in formData[field.key]" :key="index">
                                                 <div class="array-item-group">
                                                     <div class="array-item-header">
-                                                        <span class="array-item-title" x-text="field.key === 'categories' ? 'Category ' + (index + 1) : 'Item ' + (index + 1)"></span>
+                                                        <span class="array-item-title" x-text="field.key === 'categories' ? arrayItem : 'Item ' + (index + 1)"></span>
                                                         <div class="array-item-actions">
                                                             <!-- Special handling for categories - show reorder and delete buttons -->
                                                             <template x-if="field.key === 'categories'">
@@ -333,13 +333,7 @@ const editorTemplate = `
                                                     <!-- Handle string arrays -->
                                                     <template x-if="typeof arrayItem === 'string'">
                                                         <div class="array-item">
-                                                            <!-- Special handling for categories - show as non-editable text -->
-                                                            <template x-if="field.key === 'categories'">
-                                                                <div class="category-display">
-                                                                    <span class="category-name" x-text="arrayItem"></span>
-                                                                </div>
-                                                            </template>
-                                                            <!-- Regular editable input for non-categories -->
+                                                            <!-- For categories, we don't need the separate display since name is in header -->
                                                             <template x-if="field.key !== 'categories'">
                                                                 <input 
                                                                     type="text" 
