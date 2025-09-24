@@ -313,8 +313,7 @@ const editorTemplate = `
                                                                 class="category-name-input" 
                                                                 x-model="formData[field.key][index]"
                                                                 @focus="$event.target.dataset.originalValue = $event.target.value"
-                                                                @input="updateCategoryInPosts(field.key, index, $event.target.value, $event.target.dataset.originalValue)"
-                                                                @blur="$event.target.value = $event.target.value.trim()"
+                                                                @blur="updateCategoryInPosts(field.key, index, $event.target.value, $event.target.dataset.originalValue); $event.target.value = $event.target.value.trim()"
                                                                 :placeholder="'Category name'"
                                                             >
                                                         </template>
@@ -870,31 +869,51 @@ function createDynamicEditor() {
 		},
 
 		updateCategoryInPosts(fieldKey, index, newCategoryName, oldCategoryName) {
+			console.log('updateCategoryInPosts called:', {
+				fieldKey,
+				index,
+				newCategoryName,
+				oldCategoryName,
+				hasData: !!this.data,
+				hasPosts: !!(this.data && this.data.posts),
+				postsLength: this.data && this.data.posts ? this.data.posts.length : 0
+			});
+
 			// Don't update if the name hasn't actually changed or is empty
 			if (!newCategoryName || !oldCategoryName || newCategoryName === oldCategoryName) {
+				console.log('Skipping update: no change or empty values');
 				return;
 			}
 
 			const trimmedNewName = newCategoryName.trim();
 			if (!trimmedNewName) {
+				console.log('Skipping update: trimmed name is empty');
 				return;
 			}
 
 			// Update all posts that use the old category name
-			if (this.data.posts && Array.isArray(this.data.posts)) {
+			if (this.data && this.data.posts && Array.isArray(this.data.posts)) {
 				let updatedCount = 0;
-				this.data.posts.forEach((post) => {
+				console.log('Checking posts for category updates...');
+
+				this.data.posts.forEach((post, postIndex) => {
+					console.log(
+						`Post ${postIndex}: category="${post.category}", looking for "${oldCategoryName}"`
+					);
 					if (post.category === oldCategoryName) {
+						console.log(
+							`Updating post ${postIndex} category from "${oldCategoryName}" to "${trimmedNewName}"`
+						);
 						post.category = trimmedNewName;
 						updatedCount++;
 					}
 				});
 
-				if (updatedCount > 0) {
-					console.log(
-						`Updated category "${oldCategoryName}" to "${trimmedNewName}" in ${updatedCount} posts`
-					);
-				}
+				console.log(
+					`Updated ${updatedCount} posts from "${oldCategoryName}" to "${trimmedNewName}"`
+				);
+			} else {
+				console.log('No posts data available for update');
 			}
 		},
 

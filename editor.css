@@ -1188,6 +1188,7 @@ input:checked+.toggle-slider:before {
     font-family: 'Inter', sans-serif;
     flex: 1;
     min-width: 0;
+    max-width: 100px;
     transition: all 0.2s ease;
 }
 
