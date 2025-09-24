@@ -889,9 +889,11 @@ function createDynamicEditor() {
 						updatedCount++;
 					}
 				});
-				
+
 				if (updatedCount > 0) {
-					console.log(`Updated category "${oldCategoryName}" to "${trimmedNewName}" in ${updatedCount} posts`);
+					console.log(
+						`Updated category "${oldCategoryName}" to "${trimmedNewName}" in ${updatedCount} posts`
+					);
 				}
 			}
 		},
