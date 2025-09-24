@@ -1175,6 +1175,28 @@ input:checked+.toggle-slider:before {
     font-size: 1rem;
 }
 
+.category-name-input {
+    background: transparent;
+    border: none;
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.875rem;
+    padding: 0;
+    margin: 0;
+    outline: none;
+    font-family: 'Inter', sans-serif;
+    flex: 1;
+    min-width: 0;
+}
+
+.category-name-input:focus {
+    background: #ffffff;
+    border: 1px solid #3b82f6;
+    border-radius: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
 .array-item-group {
     padding: 1rem;
     border: 1px solid #e5e7eb;

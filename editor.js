@@ -306,7 +306,21 @@ const editorTemplate = `
                                             <template x-for="(arrayItem, index) in formData[field.key]" :key="index">
                                                 <div class="array-item-group">
                                                     <div class="array-item-header">
-                                                        <span class="array-item-title" x-text="field.key === 'categories' ? arrayItem : 'Item ' + (index + 1)"></span>
+                                                        <!-- Special handling for categories - editable name -->
+                                                        <template x-if="field.key === 'categories'">
+                                                            <input 
+                                                                type="text" 
+                                                                class="category-name-input" 
+                                                                x-model="formData[field.key][index]"
+                                                                @input="updateCategoryInPosts(field.key, index, $event.target.value, arrayItem)"
+                                                                @blur="$event.target.value = $event.target.value.trim()"
+                                                                :placeholder="'Category name'"
+                                                            >
+                                                        </template>
+                                                        <!-- Regular item titles for non-categories -->
+                                                        <template x-if="field.key !== 'categories'">
+                                                            <span class="array-item-title" x-text="'Item ' + (index + 1)"></span>
+                                                        </template>
                                                         <div class="array-item-actions">
                                                             <!-- Special handling for categories - show reorder and delete buttons -->
                                                             <template x-if="field.key === 'categories'">
@@ -845,10 +859,43 @@ function createDynamicEditor() {
 
 		deleteCategoryItem(fieldKey, index) {
 			const categoryName = this.formData[fieldKey][index];
-			const confirmMessage = `Delete "${categoryName}"? Make sure to update any posts using this category.`;
+			const confirmMessage = `Delete "${categoryName}"? This will remove the category from all posts that use it.`;
 
 			if (confirm(confirmMessage)) {
+				// Remove category from all posts before deleting it
+				this.removeCategoryFromPosts(categoryName);
 				this.formData[fieldKey].splice(index, 1);
+			}
+		},
+
+		updateCategoryInPosts(fieldKey, index, newCategoryName, oldCategoryName) {
+			// Don't update if the name hasn't actually changed or is empty
+			if (!newCategoryName || newCategoryName === oldCategoryName) {
+				return;
+			}
+
+			// Update all posts that use the old category name
+			if (this.data.posts && Array.isArray(this.data.posts)) {
+				this.data.posts.forEach((post) => {
+					if (post.category === oldCategoryName) {
+						post.category = newCategoryName.trim();
+					}
+				});
+				console.log(
+					`Updated category "${oldCategoryName}" to "${newCategoryName.trim()}" in all posts`
+				);
+			}
+		},
+
+		removeCategoryFromPosts(categoryName) {
+			// Remove category from all posts when category is deleted
+			if (this.data.posts && Array.isArray(this.data.posts)) {
+				this.data.posts.forEach((post) => {
+					if (post.category === categoryName) {
+						post.category = ''; // Set to empty or could set to 'Uncategorized'
+					}
+				});
+				console.log(`Removed category "${categoryName}" from all posts`);
 			}
 		},
 
