@@ -1267,16 +1267,17 @@ function createDynamicEditor() {
 				// Update data structure
 				this.data.categories = [...this.formData.categories];
 
-				// Propagate name change to posts categories
-				if (
-					originalName &&
-					trimmedName !== originalName &&
-					this.data.posts &&
-					Array.isArray(this.data.posts)
-				) {
-					this.data.posts.forEach((post) => {
-						if (post.category === originalName) {
-							post.category = trimmedName;
+				// Propagate name change to categories used in content arrays
+				if (originalName && trimmedName !== originalName) {
+					const targets = ['posts', 'articles', 'items'];
+					targets.forEach((key) => {
+						const arr = this.data[key];
+						if (arr && Array.isArray(arr)) {
+							arr.forEach((item) => {
+								if (item && item.category === originalName) {
+									item.category = trimmedName;
+								}
+							});
 						}
 					});
 				}
