@@ -59,6 +59,16 @@
     margin-bottom: 5px;
 }
 
+.nav-item-modal {
+    z-index: 1100;
+}
+
+.nav-item-modal .modal-container {
+    height: auto;
+    max-height: 90vh;
+    width: 720px;
+}
+
 /* Menu item link in list */
 .nav-name-link {
     background: none;
