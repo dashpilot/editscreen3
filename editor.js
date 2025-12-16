@@ -1,34 +1,34 @@
 // Dynamic Editor Template - generates inputs based on data structure
 const editorTemplate = `
-<!-- Nav Item Editor Modal -->
-<div class="modal-overlay nav-item-modal" x-show="isNavItemModalOpen" x-transition style="display: none;" @click.self="closeNavItemModal()">
+<!-- Category (Menu Item) Editor Modal -->
+<div class="modal-overlay category-item-modal" x-show="isCategoryItemModalOpen" x-transition style="display: none;" @click.self="closeCategoryItemModal()">
     <div class="modal-container">
-        <div class="modal-main nav-item-modal-main">
+        <div class="modal-main category-item-modal-main">
             <div class="modal-header">
-                <h2 class="modal-title">Edit Menu Item</h2>
-                <button class="modal-close" @click="closeNavItemModal()">&times;</button>
+                <h2 class="modal-title">Edit Category</h2>
+                <button class="modal-close" @click="closeCategoryItemModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <form @submit.prevent="saveNavItem()">
+                <form @submit.prevent="saveCategoryItem()">
                     <div class="form-group">
-                        <label class="form-label" for="nav-name">Name</label>
+                        <label class="form-label" for="category-name">Name</label>
                         <input 
                             type="text" 
-                            id="nav-name"
-                            name="nav-name"
+                            id="category-name"
+                            name="category-name"
                             class="form-input" 
-                            x-model="navItemData.name"
+                            x-model="categoryItemData.name"
                             required
                         >
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="nav-title">Title</label>
+                        <label class="form-label" for="category-title">Title</label>
                         <input 
                             type="text" 
-                            id="nav-title"
-                            name="nav-title"
+                            id="category-title"
+                            name="category-title"
                             class="form-input" 
-                            x-model="navItemData.title"
+                            x-model="categoryItemData.title"
                         >
                     </div>
                     <div class="form-group">
@@ -49,8 +49,8 @@ const editorTemplate = `
                                 class="rich-text-content" 
                                 contenteditable="true"
                                 spellcheck="false"
-                                id="editor_nav_description"
-                                @input="navItemData.description = $event.target.innerHTML"
+                                id="editor_category_description"
+                                @input="categoryItemData.description = $event.target.innerHTML"
                                 @paste="handlePaste($event)"
                                 x-init="initRichTextContent($el, 'description')"
                             ></div>
@@ -61,10 +61,10 @@ const editorTemplate = `
             <div class="modal-footer">
                 <div class="footer-content">
                     <div class="flex items-center justify-end gap-2">
-                        <button type="button" class="button button-secondary" @click="closeNavItemModal()">
+                        <button type="button" class="button button-secondary" @click="closeCategoryItemModal()">
                             Cancel
                         </button>
-                        <button type="button" class="button button-primary" @click="saveNavItem()" :disabled="isSaving">
+                        <button type="button" class="button button-primary" @click="saveCategoryItem()" :disabled="isSaving">
                             <template x-if="isSaving">
                                 <i class="bi bi-arrow-clockwise" style="animation: spin 1s linear infinite;"></i>
                             </template>
@@ -378,20 +378,20 @@ const editorTemplate = `
                                 <!-- Array (for non-image arrays) -->
                                 <template x-if="field.type === 'array'">
                                     <div>
-										<label class="form-label" x-text="field.key === 'nav' ? 'Menu Items' : field.label"></label>
+										<label class="form-label" x-text="field.key === 'categories' ? 'Categories' : field.label"></label>
                                         <div class="array-container">
-											<!-- Nav list view -->
-											<template x-if="field.key === 'nav'">
+											<!-- Categories list view -->
+											<template x-if="field.key === 'categories'">
 												<div>
 													<template x-for="(arrayItem, index) in formData[field.key]" :key="index">
-														<div class="array-item-group nav-list-item">
+														<div class="array-item-group category-list-item">
 															<div class="array-item-header">
-																<button type="button" class="nav-name-link" @click="openNavItemModal(index)">
+																<button type="button" class="category-name-link" @click="openCategoryItemModal(index)">
 																	<span x-text="(formData[field.key][index] && formData[field.key][index].name) || formData[field.key][index] || 'Untitled'"></span>
 																</button>
 																<div class="array-item-actions">
 																	<div class="category-actions">
-																		<button type="button" class="action-btn edit" @click="openNavItemModal(index)" title="Edit menu item">
+																		<button type="button" class="action-btn edit" @click="openCategoryItemModal(index)" title="Edit category">
 																			<i class="bi bi-file-text"></i>
 																		</button>
 																		<button type="button" class="action-btn move" @click="moveArrayItem(field.key, index, -1)" :disabled="index === 0" title="Move up">
@@ -400,7 +400,7 @@ const editorTemplate = `
 																		<button type="button" class="action-btn move" @click="moveArrayItem(field.key, index, 1)" :disabled="index === formData[field.key].length - 1" title="Move down">
 																			<i class="bi bi-arrow-down"></i>
 																		</button>
-																		<button type="button" class="action-btn delete" @click="deleteNavItem(index)" title="Delete menu item">
+																		<button type="button" class="action-btn delete" @click="deleteCategoryItem(index)" title="Delete category">
 																			<i class="bi bi-trash"></i>
 																		</button>
 																	</div>
@@ -410,13 +410,13 @@ const editorTemplate = `
 													</template>
 													<button type="button" class="button button-secondary array-add-btn" @click="addArrayItem(field.key)">
 														<i class="bi bi-plus"></i>
-														<span>Add Menu Item</span>
+														<span>Add Category</span>
 													</button>
 												</div>
 											</template>
 
-											<!-- Non-nav arrays -->
-                                            <template x-if="field.key !== 'nav'">
+											<!-- Non-category arrays -->
+                                            <template x-if="field.key !== 'categories'">
 												<div>
 													<template x-for="(arrayItem, index) in formData[field.key]" :key="index">
 														<div class="array-item-group">
@@ -556,7 +556,7 @@ function createDynamicEditor() {
 	return {
 		// State
 		isOpen: false,
-		isNavItemModalOpen: false,
+		isCategoryItemModalOpen: false,
 		currentTab: 'edit',
 		editType: 'object', // 'object' or 'collection'
 		currentItem: {},
@@ -567,9 +567,9 @@ function createDynamicEditor() {
 		itemTypeName: '',
 		data: {},
 		isSaving: false,
-		navItemData: { name: '', title: '', description: '' },
-		currentNavIndex: null,
-		navOriginalName: '',
+		categoryItemData: { name: '', title: '', description: '' },
+		currentCategoryIndex: null,
+		categoryOriginalName: '',
 
 		// Sortable instance
 		sortableInstance: null,
@@ -669,7 +669,7 @@ function createDynamicEditor() {
 				this.collectionName = key;
 				this.itemTypeName = this.formatLabel(key);
 			} else if (parts.length === 2) {
-				// Editing an item in a top-level array (e.g., "nav.1")
+				// Editing an item in a top-level array (e.g., "categories.1")
 				const key = parts[0];
 				const itemId = parseInt(parts[1]);
 
@@ -739,11 +739,11 @@ function createDynamicEditor() {
 
 			for (const [key, value] of Object.entries(item)) {
 				if (key.startsWith('_') || key === 'id') continue; // Skip internal fields and id
-				if (key === 'categories' || key === 'pages') continue; // Deprecated keys
+				if (key === 'pages') continue; // Deprecated key
 
 				const field = {
 					key,
-					label: key === 'nav' ? 'Menu Items' : this.formatLabel(key),
+					label: this.formatLabel(key),
 					required: false
 				};
 
@@ -782,11 +782,13 @@ function createDynamicEditor() {
 					];
 				} else if (key === 'category') {
 					field.type = 'select';
-					const categoryOptions = Array.isArray(this.data.categories) ? this.data.categories : [];
-					const navOptions = (this.data.nav || [])
+					const categoryOptionsRaw = Array.isArray(this.data.categories)
+						? this.data.categories
+						: [];
+					const categoryOptions = categoryOptionsRaw
 						.map((item) => (typeof item === 'string' ? item : item.name))
 						.filter(Boolean);
-					field.options = Array.from(new Set([...navOptions, ...categoryOptions]));
+					field.options = Array.from(new Set(categoryOptions));
 				} else if (
 					key === 'content' ||
 					key === 'description' ||
@@ -895,9 +897,9 @@ function createDynamicEditor() {
 				this.formData[fieldKey] = [];
 			}
 
-			// Special handling for nav (menu items)
-			if (fieldKey === 'nav') {
-				const promptText = 'Enter new menu item name:';
+			// Special handling for categories (menu items)
+			if (fieldKey === 'categories') {
+				const promptText = 'Enter new category name:';
 				const newItemName = prompt(promptText);
 				if (newItemName && newItemName.trim()) {
 					this.formData[fieldKey].push({
@@ -908,7 +910,7 @@ function createDynamicEditor() {
 					});
 				}
 				// After adding, show list (ensure detail closed)
-				this.closeNavItemModal();
+				this.closeCategoryItemModal();
 				return;
 			}
 
@@ -946,13 +948,13 @@ function createDynamicEditor() {
 			}
 		},
 
-		deleteNavItem(index) {
-			const item = this.formData.nav?.[index];
-			const itemName = item && typeof item === 'object' ? item.name : item || 'menu item';
+		deleteCategoryItem(index) {
+			const item = this.formData.categories?.[index];
+			const itemName = item && typeof item === 'object' ? item.name : item || 'category';
 			const confirmMessage = `Delete "${itemName}"?`;
 
 			if (confirm(confirmMessage)) {
-				this.formData.nav.splice(index, 1);
+				this.formData.categories.splice(index, 1);
 			}
 		},
 
@@ -1185,65 +1187,65 @@ function createDynamicEditor() {
 			}
 		},
 
-		openNavItemModal(index) {
-			const navItem = this.formData.nav?.[index];
+		openCategoryItemModal(index) {
+			const categoryItem = this.formData.categories?.[index];
 
-			if (navItem && typeof navItem === 'object') {
-				this.navItemData = {
-					name: navItem.name || '',
-					title: navItem.title || '',
-					description: navItem.description || ''
+			if (categoryItem && typeof categoryItem === 'object') {
+				this.categoryItemData = {
+					name: categoryItem.name || '',
+					title: categoryItem.title || '',
+					description: categoryItem.description || ''
 				};
-				this.navOriginalName = navItem.name || '';
-			} else if (typeof navItem === 'string') {
-				this.navItemData = {
-					name: navItem,
+				this.categoryOriginalName = categoryItem.name || '';
+			} else if (typeof categoryItem === 'string') {
+				this.categoryItemData = {
+					name: categoryItem,
 					title: '',
 					description: ''
 				};
-				this.navOriginalName = navItem;
+				this.categoryOriginalName = categoryItem;
 			} else {
-				this.navItemData = { name: '', title: '', description: '' };
-				this.navOriginalName = '';
+				this.categoryItemData = { name: '', title: '', description: '' };
+				this.categoryOriginalName = '';
 			}
 
-			this.currentNavIndex = index;
-			this.isNavItemModalOpen = true;
+			this.currentCategoryIndex = index;
+			this.isCategoryItemModalOpen = true;
 
 			// Initialize rich text editor content
 			this.$nextTick(() => {
-				const editor = document.getElementById('editor_nav_description');
+				const editor = document.getElementById('editor_category_description');
 				if (editor) {
-					editor.innerHTML = this.navItemData.description || '';
+					editor.innerHTML = this.categoryItemData.description || '';
 				}
 			});
 		},
 
-		closeNavItemModal() {
-			this.isNavItemModalOpen = false;
-			this.navItemData = { name: '', title: '', description: '' };
-			this.currentNavIndex = null;
-			this.navOriginalName = '';
+		closeCategoryItemModal() {
+			this.isCategoryItemModalOpen = false;
+			this.categoryItemData = { name: '', title: '', description: '' };
+			this.currentCategoryIndex = null;
+			this.categoryOriginalName = '';
 		},
 
-		async saveNavItem() {
-			if (this.currentNavIndex === null || !this.formData.nav) return;
+		async saveCategoryItem() {
+			if (this.currentCategoryIndex === null || !this.formData.categories) return;
 			if (this.isSaving) return;
 
 			this.isSaving = true;
 
 			try {
 				// Get content from rich text editor
-				const editor = document.getElementById('editor_nav_description');
+				const editor = document.getElementById('editor_category_description');
 				if (editor) {
-					this.navItemData.description = editor.innerHTML;
+					this.categoryItemData.description = editor.innerHTML;
 				}
 
 				// Preserve existing id if present
-				const existing = this.formData.nav[this.currentNavIndex];
+				const existing = this.formData.categories[this.currentCategoryIndex];
 				const existingId =
 					existing && typeof existing === 'object' && existing.id ? existing.id : Date.now();
-				const trimmedName = this.navItemData.name.trim();
+				const trimmedName = this.categoryItemData.name.trim();
 
 				if (!trimmedName) {
 					alert('Name is required.');
@@ -1252,22 +1254,18 @@ function createDynamicEditor() {
 				}
 
 				// Track original name for propagation
-				const originalName = this.navOriginalName || (existing && existing.name) || '';
+				const originalName = this.categoryOriginalName || (existing && existing.name) || '';
 
-				// Update the nav item
-				this.formData.nav[this.currentNavIndex] = {
+				// Update the category item
+				this.formData.categories[this.currentCategoryIndex] = {
 					id: existingId,
 					name: trimmedName,
-					title: this.navItemData.title.trim(),
-					description: this.navItemData.description
+					title: this.categoryItemData.title.trim(),
+					description: this.categoryItemData.description
 				};
 
 				// Update data structure
-				if (this.data.nav && Array.isArray(this.data.nav)) {
-					this.data.nav = [...this.formData.nav];
-				} else {
-					this.data.nav = [...this.formData.nav];
-				}
+				this.data.categories = [...this.formData.categories];
 
 				// Propagate name change to posts categories
 				if (
@@ -1284,7 +1282,7 @@ function createDynamicEditor() {
 				}
 
 				// Save to server
-				console.log('Saving menu items to server...');
+				console.log('Saving categories to server...');
 				const saveResponse = await fetch('/api/save', {
 					method: 'POST',
 					headers: {
@@ -1297,10 +1295,10 @@ function createDynamicEditor() {
 					throw new Error(`Save failed: ${saveResponse.status} - ${saveResponse.statusText}`);
 				}
 
-				console.log('Menu items saved successfully');
+				console.log('Categories saved successfully');
 
 				// Close the detail panel
-				this.closeNavItemModal();
+				this.closeCategoryItemModal();
 			} catch (error) {
 				console.error('Error saving menu item:', error);
 				alert('Failed to save menu item. Please try again.');
@@ -1452,8 +1450,8 @@ function createDynamicEditor() {
 
 		initRichTextContent(element, fieldKey) {
 			// Set initial content only once when the element is created
-			if (fieldKey === 'description' && element.id === 'editor_nav_description') {
-				element.innerHTML = (this.navItemData && this.navItemData.description) || '';
+			if (fieldKey === 'description' && element.id === 'editor_category_description') {
+				element.innerHTML = (this.categoryItemData && this.categoryItemData.description) || '';
 			} else if (this.formData[fieldKey]) {
 				element.innerHTML = this.formData[fieldKey];
 			}
