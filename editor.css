@@ -32,6 +32,11 @@
     overflow-y: auto;
 }
 
+/* Page content modal should appear above the main editor modal */
+.modal-overlay.page-content-modal {
+    z-index: 10001;
+}
+
 .modal-container {
     width: 100%;
     max-width: 1200px;

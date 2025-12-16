@@ -1,7 +1,7 @@
 // Dynamic Editor Template - generates inputs based on data structure
 const editorTemplate = `
 <!-- Page Content Editor Modal -->
-<div class="modal-overlay" x-show="isPageContentModalOpen" x-transition style="display: none;" @click.self="closePageContentModal()">
+<div class="modal-overlay page-content-modal" x-show="isPageContentModalOpen" x-transition style="display: none;" @click.self="closePageContentModal()">
     <div class="modal-container">
         <div class="modal-content">
             <div class="modal-header">
@@ -435,8 +435,8 @@ const editorTemplate = `
                                                     <template x-if="typeof arrayItem === 'object' && arrayItem !== null">
                                                         <div class="array-object-fields">
                                                             <template x-for="(value, objKey) in arrayItem" :key="objKey">
-                                                                <!-- Hide content field for pages (it's edited in modal) -->
-                                                                <template x-if="!(field.key === 'pages' && objKey === 'content')">
+                                                                <!-- Hide name and content fields for pages (name is in header, content is in modal) -->
+                                                                <template x-if="!(field.key === 'pages' && (objKey === 'content' || objKey === 'name'))">
                                                                     <div class="array-object-field">
                                                                         <label class="form-label" x-text="objKey.charAt(0).toUpperCase() + objKey.slice(1).replace(/([A-Z])/g, ' $1').replace(/_/g, ' ')"></label>
                                                                         <input 
