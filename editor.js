@@ -303,82 +303,48 @@ const editorTemplate = `
                                     <div>
 										<label class="form-label" x-text="field.key === 'nav' ? 'Menu Items' : field.label"></label>
                                         <div class="array-container">
-                                            <template x-for="(arrayItem, index) in formData[field.key]" :key="index">
-                                                <div class="array-item-group">
-                                                    <div class="array-item-header">
-														<!-- Nav items: show name as link, no inline edit -->
-														<template x-if="field.key === 'nav'">
-															<button type="button" class="nav-name-link" @click="openNavItemDetail(index)">
-																<span x-text="(formData[field.key][index] && formData[field.key][index].name) || formData[field.key][index] || 'Untitled'"></span>
-															</button>
-														</template>
-														<!-- Regular item titles for non-nav -->
-														<template x-if="field.key !== 'nav'">
-															<span class="array-item-title" x-text="'Item ' + (index + 1)"></span>
-														</template>
-                                                        <div class="array-item-actions">
-															<!-- Nav actions: edit (modal), move, delete -->
-															<template x-if="field.key === 'nav'">
-																<div class="category-actions">
-																	<button type="button" class="action-btn edit" @click="openNavItemDetail(index)" title="Edit menu item">
-																		<i class="bi bi-file-text"></i>
-																	</button>
-																	<button type="button" class="action-btn move" @click="moveArrayItem(field.key, index, -1)" :disabled="index === 0" title="Move up">
-																		<i class="bi bi-arrow-up"></i>
-																	</button>
-																	<button type="button" class="action-btn move" @click="moveArrayItem(field.key, index, 1)" :disabled="index === formData[field.key].length - 1" title="Move down">
-																		<i class="bi bi-arrow-down"></i>
-																	</button>
-																	<button type="button" class="action-btn delete" @click="deleteNavItem(index)" title="Delete menu item">
-																		<i class="bi bi-trash"></i>
-																	</button>
-																</div>
-															</template>
-															<!-- Regular delete button for other arrays -->
-															<template x-if="field.key !== 'nav'">
-																<button type="button" class="array-remove-btn" @click="removeArrayItem(field.key, index)" title="Remove">
-																	<i class="bi bi-trash"></i>
+											<!-- Nav list view -->
+											<template x-if="field.key === 'nav' && currentNavIndex === null">
+												<div>
+													<template x-for="(arrayItem, index) in formData[field.key]" :key="index">
+														<div class="array-item-group">
+															<div class="array-item-header">
+																<button type="button" class="nav-name-link" @click="openNavItemDetail(index)">
+																	<span x-text="(formData[field.key][index] && formData[field.key][index].name) || formData[field.key][index] || 'Untitled'"></span>
 																</button>
-															</template>
-                                                        </div>
-                                                    </div>
-													<!-- Handle string arrays (skip nav) -->
-													<template x-if="typeof arrayItem === 'string' && field.key !== 'nav'">
-														<div class="array-item">
-															<input 
-																type="text" 
-																class="form-input" 
-																:placeholder="'Item ' + (index + 1)"
-																x-model="formData[field.key][index]"
-															>
-														</div>
-													</template>
-													<!-- Handle object arrays (skip nav; nav uses detail panel) -->
-													<template x-if="typeof arrayItem === 'object' && arrayItem !== null && field.key !== 'nav'">
-														<div class="array-object-fields">
-															<template x-for="(value, objKey) in arrayItem" :key="objKey">
-																<div class="array-object-field">
-																	<label class="form-label" x-text="objKey.charAt(0).toUpperCase() + objKey.slice(1).replace(/([A-Z])/g, ' $1').replace(/_/g, ' ')"></label>
-																	<input 
-																		type="text" 
-																		class="form-input" 
-																		:placeholder="objKey"
-																		x-model="formData[field.key][index][objKey]"
-																	>
+																<div class="array-item-actions">
+																	<div class="category-actions">
+																		<button type="button" class="action-btn edit" @click="openNavItemDetail(index)" title="Edit menu item">
+																			<i class="bi bi-file-text"></i>
+																		</button>
+																		<button type="button" class="action-btn move" @click="moveArrayItem(field.key, index, -1)" :disabled="index === 0" title="Move up">
+																			<i class="bi bi-arrow-up"></i>
+																		</button>
+																		<button type="button" class="action-btn move" @click="moveArrayItem(field.key, index, 1)" :disabled="index === formData[field.key].length - 1" title="Move down">
+																			<i class="bi bi-arrow-down"></i>
+																		</button>
+																		<button type="button" class="action-btn delete" @click="deleteNavItem(index)" title="Delete menu item">
+																			<i class="bi bi-trash"></i>
+																		</button>
+																	</div>
 																</div>
-															</template>
+															</div>
 														</div>
 													</template>
-                                                </div>
-                                            </template>
-                                            <button type="button" class="button button-secondary array-add-btn" @click="addArrayItem(field.key)">
-                                                <i class="bi bi-plus"></i>
-												<span x-text="field.key === 'nav' ? 'Add Menu Item' : 'Add Item'"></span>
-                                            </button>
-											<!-- Nav detail panel -->
+													<button type="button" class="button button-secondary array-add-btn" @click="addArrayItem(field.key)">
+														<i class="bi bi-plus"></i>
+														<span>Add Menu Item</span>
+													</button>
+												</div>
+											</template>
+
+											<!-- Nav detail view -->
 											<template x-if="field.key === 'nav' && currentNavIndex !== null">
 												<div class="nav-detail-panel">
-													<h4 class="nav-detail-title">Edit Menu Item</h4>
+													<div class="nav-detail-header">
+														<h4 class="nav-detail-title">Edit Menu Item</h4>
+														<button type="button" class="button button-secondary" @click="closeNavDetail()">Back to list</button>
+													</div>
 													<div class="form-group">
 														<label class="form-label" for="nav-name">Name</label>
 														<input 
@@ -434,6 +400,53 @@ const editorTemplate = `
 															<span x-text="isSaving ? 'Saving...' : 'Save'"></span>
 														</button>
 													</div>
+												</div>
+											</template>
+
+											<!-- Non-nav arrays -->
+                                            <template x-if="field.key !== 'nav'">
+												<div>
+													<template x-for="(arrayItem, index) in formData[field.key]" :key="index">
+														<div class="array-item-group">
+															<div class="array-item-header">
+																<span class="array-item-title" x-text="'Item ' + (index + 1)"></span>
+																<div class="array-item-actions">
+																	<button type="button" class="array-remove-btn" @click="removeArrayItem(field.key, index)" title="Remove">
+																		<i class="bi bi-trash"></i>
+																	</button>
+																</div>
+															</div>
+															<template x-if="typeof arrayItem === 'string'">
+																<div class="array-item">
+																	<input 
+																		type="text" 
+																		class="form-input" 
+																		:placeholder="'Item ' + (index + 1)"
+																		x-model="formData[field.key][index]"
+																	>
+																</div>
+															</template>
+															<template x-if="typeof arrayItem === 'object' && arrayItem !== null">
+																<div class="array-object-fields">
+																	<template x-for="(value, objKey) in arrayItem" :key="objKey">
+																		<div class="array-object-field">
+																			<label class="form-label" x-text="objKey.charAt(0).toUpperCase() + objKey.slice(1).replace(/([A-Z])/g, ' $1').replace(/_/g, ' ')"></label>
+																			<input 
+																				type="text" 
+																				class="form-input" 
+																				:placeholder="objKey"
+																				x-model="formData[field.key][index][objKey]"
+																			>
+																		</div>
+																	</template>
+																</div>
+															</template>
+														</div>
+													</template>
+													<button type="button" class="button button-secondary array-add-btn" @click="addArrayItem(field.key)">
+														<i class="bi bi-plus"></i>
+														<span>Add Item</span>
+													</button>
 												</div>
 											</template>
                                         </div>
@@ -882,6 +895,8 @@ function createDynamicEditor() {
 						description: ''
 					});
 				}
+				// After adding, show list (ensure detail closed)
+				this.closeNavDetail();
 				return;
 			}
 
@@ -1423,11 +1438,8 @@ function createDynamicEditor() {
 
 		initRichTextContent(element, fieldKey) {
 			// Set initial content only once when the element is created
-			// Handle nav item modal separately
 			if (fieldKey === 'description' && element.id === 'editor_nav_description') {
-				if (this.navItemData && this.navItemData.description) {
-					element.innerHTML = this.navItemData.description;
-				}
+				element.innerHTML = (this.navItemData && this.navItemData.description) || '';
 			} else if (this.formData[fieldKey]) {
 				element.innerHTML = this.formData[fieldKey];
 			}
