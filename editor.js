@@ -1,5 +1,72 @@
 // Dynamic Editor Template - generates inputs based on data structure
 const editorTemplate = `
+<!-- Page Content Editor Modal -->
+<div class="modal-overlay" x-show="isPageContentModalOpen" x-transition style="display: none;" @click.self="closePageContentModal()">
+    <div class="modal-container">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Edit Page Content</h2>
+                <button class="modal-close" @click="closePageContentModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form @submit.prevent="savePageContent()">
+                    <div class="form-group">
+                        <label class="form-label" for="page-title">Page Title</label>
+                        <input 
+                            type="text" 
+                            id="page-title"
+                            name="page-title"
+                            class="form-input" 
+                            x-model="pageContentData.title"
+                            required
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Page Content</label>
+                        <div class="rich-text-editor">
+                            <div class="rich-text-toolbar">
+                                <button type="button" class="toolbar-btn" @click="formatText('bold')" title="Bold">
+                                    <i class="bi bi-type-bold"></i>
+                                </button>
+                                <button type="button" class="toolbar-btn" @click="formatText('italic')" title="Italic">
+                                    <i class="bi bi-type-italic"></i>
+                                </button>
+                                <button type="button" class="toolbar-btn" @click="insertLink()" title="Insert Link">
+                                    <i class="bi bi-link-45deg"></i>
+                                </button>
+                            </div>
+                            <div 
+                                class="rich-text-content" 
+                                contenteditable="true"
+                                spellcheck="false"
+                                id="editor_page_content"
+                                @input="pageContentData.content = $event.target.innerHTML"
+                                @paste="handlePaste($event)"
+                                x-init="initRichTextContent($el, 'content')"
+                            ></div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <div class="footer-content">
+                    <div class="flex items-center justify-end gap-2">
+                        <button type="button" class="button button-secondary" @click="closePageContentModal()">
+                            Cancel
+                        </button>
+                        <button type="button" class="button button-primary" @click="savePageContent()" :disabled="isSaving">
+                            <template x-if="isSaving">
+                                <i class="bi bi-arrow-clockwise" style="animation: spin 1s linear infinite;"></i>
+                            </template>
+                            <span x-text="isSaving ? 'Saving...' : 'Save'"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal-overlay" x-show="isOpen" x-transition style="display: none;" @click.self="closeModal()">
     <div class="modal-container">
         <div class="modal-content">
@@ -311,10 +378,10 @@ const editorTemplate = `
                                                             <input 
                                                                 type="text" 
                                                                 class="category-name-input" 
-                                                                :value="formData[field.key][index]"
-                                                                @focus="categoryOriginalValues[field.key + '_' + index] = $event.target.value"
-                                                                @input="formData[field.key][index] = $event.target.value"
-                                                                @blur="updateCategoryInPosts(field.key, index, $event.target.value, categoryOriginalValues[field.key + '_' + index]); $event.target.value = $event.target.value.trim(); formData[field.key][index] = $event.target.value.trim()"
+                                                                :value="typeof formData[field.key][index] === 'string' ? formData[field.key][index] : (formData[field.key][index].name || formData[field.key][index].title || '')"
+                                                                @focus="categoryOriginalValues[field.key + '_' + index] = typeof formData[field.key][index] === 'string' ? formData[field.key][index] : (formData[field.key][index].name || formData[field.key][index].title || '')"
+                                                                @input="if (typeof formData[field.key][index] === 'string') { formData[field.key][index] = $event.target.value; } else { formData[field.key][index].name = $event.target.value; }"
+                                                                @blur="updateCategoryInPosts(field.key, index, $event.target.value, categoryOriginalValues[field.key + '_' + index]); const trimmed = $event.target.value.trim(); if (typeof formData[field.key][index] === 'string') { formData[field.key][index] = trimmed; } else { formData[field.key][index].name = trimmed; }"
                                                                 :placeholder="field.key === 'pages' ? 'Page name' : 'Category name'"
                                                             >
                                                         </template>
@@ -326,6 +393,11 @@ const editorTemplate = `
                                                             <!-- Special handling for categories and pages - show reorder and delete buttons -->
                                                             <template x-if="field.key === 'categories' || field.key === 'pages'">
                                                                 <div class="category-actions">
+                                                                    <template x-if="field.key === 'pages'">
+                                                                        <button type="button" class="action-btn edit" @click="openPageContentModal(field.key, index)" title="Edit page content">
+                                                                            <i class="bi bi-file-text"></i>
+                                                                        </button>
+                                                                    </template>
                                                                     <button type="button" class="action-btn move" @click="moveArrayItem(field.key, index, -1)" :disabled="index === 0" title="Move up">
                                                                         <i class="bi bi-arrow-up"></i>
                                                                     </button>
@@ -476,6 +548,7 @@ function createDynamicEditor() {
 	return {
 		// State
 		isOpen: false,
+		isPageContentModalOpen: false,
 		currentTab: 'edit',
 		editType: 'object', // 'object' or 'collection'
 		currentItem: {},
@@ -487,6 +560,9 @@ function createDynamicEditor() {
 		data: {},
 		isSaving: false,
 		categoryOriginalValues: {},
+		pageContentData: { title: '', content: '' },
+		currentPageIndex: null,
+		currentPageFieldKey: null,
 
 		// Sortable instance
 		sortableInstance: null,
@@ -822,7 +898,15 @@ function createDynamicEditor() {
 					fieldKey === 'pages' ? 'Enter new page name:' : 'Enter new category name:';
 				const newItemName = prompt(promptText);
 				if (newItemName && newItemName.trim()) {
-					this.formData[fieldKey].push(newItemName.trim());
+					// For pages, create object structure; for categories, keep as string
+					if (fieldKey === 'pages') {
+						this.formData[fieldKey].push({
+							name: newItemName.trim(),
+							content: ''
+						});
+					} else {
+						this.formData[fieldKey].push(newItemName.trim());
+					}
 				}
 				return;
 			}
@@ -862,7 +946,8 @@ function createDynamicEditor() {
 		},
 
 		deleteCategoryItem(fieldKey, index) {
-			const itemName = this.formData[fieldKey][index];
+			const item = this.formData[fieldKey][index];
+			const itemName = typeof item === 'string' ? item : item.name || item.title || '';
 			const itemType = fieldKey === 'pages' ? 'page' : 'category';
 			const confirmMessage =
 				fieldKey === 'pages'
@@ -1182,6 +1267,100 @@ function createDynamicEditor() {
 			}
 		},
 
+		openPageContentModal(fieldKey, index) {
+			const pageItem = this.formData[fieldKey][index];
+
+			// Convert string to object if needed, or use existing object
+			if (typeof pageItem === 'string') {
+				this.pageContentData = {
+					title: pageItem,
+					content: ''
+				};
+			} else if (typeof pageItem === 'object' && pageItem !== null) {
+				this.pageContentData = {
+					title: pageItem.name || pageItem.title || '',
+					content: pageItem.content || ''
+				};
+			} else {
+				this.pageContentData = { title: '', content: '' };
+			}
+
+			this.currentPageIndex = index;
+			this.currentPageFieldKey = fieldKey;
+			this.isPageContentModalOpen = true;
+
+			// Initialize rich text editor content
+			this.$nextTick(() => {
+				const editor = document.getElementById('editor_page_content');
+				if (editor) {
+					editor.innerHTML = this.pageContentData.content || '';
+				}
+			});
+		},
+
+		closePageContentModal() {
+			this.isPageContentModalOpen = false;
+			this.pageContentData = { title: '', content: '' };
+			this.currentPageIndex = null;
+			this.currentPageFieldKey = null;
+		},
+
+		async savePageContent() {
+			if (!this.currentPageFieldKey || this.currentPageIndex === null) return;
+			if (this.isSaving) return;
+
+			this.isSaving = true;
+
+			try {
+				// Get content from rich text editor
+				const editor = document.getElementById('editor_page_content');
+				if (editor) {
+					this.pageContentData.content = editor.innerHTML;
+				}
+
+				// Convert page to object format with name and content
+				const pageObject = {
+					name: this.pageContentData.title.trim(),
+					content: this.pageContentData.content
+				};
+
+				// Update the page in formData
+				this.formData[this.currentPageFieldKey][this.currentPageIndex] = pageObject;
+
+				// Update the data structure directly
+				if (
+					this.data[this.currentPageFieldKey] &&
+					Array.isArray(this.data[this.currentPageFieldKey])
+				) {
+					this.data[this.currentPageFieldKey] = [...this.formData[this.currentPageFieldKey]];
+				}
+
+				// Save to server
+				console.log('Saving page content to server...');
+				const saveResponse = await fetch('/api/save', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify(this.data)
+				});
+
+				if (!saveResponse.ok) {
+					throw new Error(`Save failed: ${saveResponse.status} - ${saveResponse.statusText}`);
+				}
+
+				console.log('Page content saved successfully');
+
+				// Close the modal
+				this.closePageContentModal();
+			} catch (error) {
+				console.error('Error saving page content:', error);
+				alert('Failed to save page content. Please try again.');
+			} finally {
+				this.isSaving = false;
+			}
+		},
+
 		async handleImageUpload(event, fieldKey) {
 			const file = event.target.files[0];
 			if (!file) return;
@@ -1325,7 +1504,12 @@ function createDynamicEditor() {
 
 		initRichTextContent(element, fieldKey) {
 			// Set initial content only once when the element is created
-			if (this.formData[fieldKey]) {
+			// Handle page content modal separately
+			if (fieldKey === 'content' && element.id === 'editor_page_content') {
+				if (this.pageContentData && this.pageContentData.content) {
+					element.innerHTML = this.pageContentData.content;
+				}
+			} else if (this.formData[fieldKey]) {
 				element.innerHTML = this.formData[fieldKey];
 			}
 		},
