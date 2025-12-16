@@ -678,7 +678,12 @@ function createDynamicEditor() {
 
 			// Ensure boolean values remain as booleans
 			this.preserveDataTypes();
-			this.currentTab = 'edit';
+			// Default tab selection
+			if (this.collectionName === 'categories' && parts.length === 1) {
+				this.currentTab = 'all';
+			} else {
+				this.currentTab = 'edit';
+			}
 			this.isOpen = true;
 
 			// Reset scroll to top when opening modal
