@@ -1,82 +1,5 @@
 // Dynamic Editor Template - generates inputs based on data structure
 const editorTemplate = `
-<!-- Category (Menu Item) Editor Modal -->
-<div class="modal-overlay category-item-modal" x-show="isCategoryItemModalOpen" x-transition style="display: none;" @click.self="closeCategoryItemModal()">
-    <div class="modal-container">
-        <div class="modal-main category-item-modal-main">
-            <div class="modal-header">
-                <h2 class="modal-title">Edit Category</h2>
-                <button class="modal-close" @click="closeCategoryItemModal()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <form @submit.prevent="saveCategoryItem()">
-                    <div class="form-group">
-                        <label class="form-label" for="category-name">Name</label>
-                        <input 
-                            type="text" 
-                            id="category-name"
-                            name="category-name"
-                            class="form-input" 
-                            x-model="categoryItemData.name"
-                            required
-                        >
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="category-title">Title</label>
-                        <input 
-                            type="text" 
-                            id="category-title"
-                            name="category-title"
-                            class="form-input" 
-                            x-model="categoryItemData.title"
-                        >
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Description</label>
-                        <div class="rich-text-editor">
-                            <div class="rich-text-toolbar">
-                                <button type="button" class="toolbar-btn" @click="formatText('bold')" title="Bold">
-                                    <i class="bi bi-type-bold"></i>
-                                </button>
-                                <button type="button" class="toolbar-btn" @click="formatText('italic')" title="Italic">
-                                    <i class="bi bi-type-italic"></i>
-                                </button>
-                                <button type="button" class="toolbar-btn" @click="insertLink()" title="Insert Link">
-                                    <i class="bi bi-link-45deg"></i>
-                                </button>
-                            </div>
-                            <div 
-                                class="rich-text-content" 
-                                contenteditable="true"
-                                spellcheck="false"
-                                id="editor_category_description"
-                                @input="categoryItemData.description = $event.target.innerHTML"
-                                @paste="handlePaste($event)"
-                                x-init="initRichTextContent($el, 'description')"
-                            ></div>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <div class="footer-content">
-                    <div class="flex items-center justify-end gap-2">
-                        <button type="button" class="button button-secondary" @click="closeCategoryItemModal()">
-                            Cancel
-                        </button>
-                        <button type="button" class="button button-primary" @click="saveCategoryItem()" :disabled="isSaving">
-                            <template x-if="isSaving">
-                                <i class="bi bi-arrow-clockwise" style="animation: spin 1s linear infinite;"></i>
-                            </template>
-                            <span x-text="isSaving ? 'Saving...' : 'Save'"></span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
 <div class="modal-overlay" x-show="isOpen" x-transition style="display: none;" @click.self="closeModal()">
     <div class="modal-container">
         <div class="modal-content">
@@ -556,7 +479,6 @@ function createDynamicEditor() {
 	return {
 		// State
 		isOpen: false,
-		isCategoryItemModalOpen: false,
 		currentTab: 'edit',
 		editType: 'object', // 'object' or 'collection'
 		currentItem: {},
@@ -567,8 +489,6 @@ function createDynamicEditor() {
 		itemTypeName: '',
 		data: {},
 		isSaving: false,
-		categoryItemData: { name: '', title: '', description: '' },
-		currentCategoryIndex: null,
 		categoryOriginalName: '',
 
 		// Sortable instance
