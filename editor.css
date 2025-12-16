@@ -37,6 +37,11 @@
     z-index: 10001;
 }
 
+/* Page content modal uses full width (no sidebar) */
+.modal-main.page-content-modal-main {
+    width: 100%;
+}
+
 .modal-container {
     width: 100%;
     max-width: 1200px;

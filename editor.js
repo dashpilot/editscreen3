@@ -3,7 +3,7 @@ const editorTemplate = `
 <!-- Page Content Editor Modal -->
 <div class="modal-overlay page-content-modal" x-show="isPageContentModalOpen" x-transition style="display: none;" @click.self="closePageContentModal()">
     <div class="modal-container">
-        <div class="modal-content">
+        <div class="modal-main page-content-modal-main">
             <div class="modal-header">
                 <h2 class="modal-title">Edit Page Content</h2>
                 <button class="modal-close" @click="closePageContentModal()">&times;</button>
