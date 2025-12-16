@@ -1,28 +1,38 @@
 // Dynamic Editor Template - generates inputs based on data structure
 const editorTemplate = `
-<!-- Page Content Editor Modal -->
-<div class="modal-overlay page-content-modal" x-show="isPageContentModalOpen" x-transition style="display: none;" @click.self="closePageContentModal()">
+<!-- Nav Item Editor Modal -->
+<div class="modal-overlay nav-item-modal" x-show="isNavItemModalOpen" x-transition style="display: none;" @click.self="closeNavItemModal()">
     <div class="modal-container">
-        <div class="modal-main page-content-modal-main">
+        <div class="modal-main nav-item-modal-main">
             <div class="modal-header">
-                <h2 class="modal-title">Edit Page Content</h2>
-                <button class="modal-close" @click="closePageContentModal()">&times;</button>
+                <h2 class="modal-title">Edit Menu Item</h2>
+                <button class="modal-close" @click="closeNavItemModal()">&times;</button>
             </div>
             <div class="modal-body">
-                <form @submit.prevent="savePageContent()">
+                <form @submit.prevent="saveNavItem()">
                     <div class="form-group">
-                        <label class="form-label" for="page-title">Page Title</label>
+                        <label class="form-label" for="nav-name">Name</label>
                         <input 
                             type="text" 
-                            id="page-title"
-                            name="page-title"
+                            id="nav-name"
+                            name="nav-name"
                             class="form-input" 
-                            x-model="pageContentData.title"
+                            x-model="navItemData.name"
                             required
                         >
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Page Content</label>
+                        <label class="form-label" for="nav-title">Title</label>
+                        <input 
+                            type="text" 
+                            id="nav-title"
+                            name="nav-title"
+                            class="form-input" 
+                            x-model="navItemData.title"
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
                         <div class="rich-text-editor">
                             <div class="rich-text-toolbar">
                                 <button type="button" class="toolbar-btn" @click="formatText('bold')" title="Bold">
@@ -39,10 +49,10 @@ const editorTemplate = `
                                 class="rich-text-content" 
                                 contenteditable="true"
                                 spellcheck="false"
-                                id="editor_page_content"
-                                @input="pageContentData.content = $event.target.innerHTML"
+                                id="editor_nav_description"
+                                @input="navItemData.description = $event.target.innerHTML"
                                 @paste="handlePaste($event)"
-                                x-init="initRichTextContent($el, 'content')"
+                                x-init="initRichTextContent($el, 'description')"
                             ></div>
                         </div>
                     </div>
@@ -51,10 +61,10 @@ const editorTemplate = `
             <div class="modal-footer">
                 <div class="footer-content">
                     <div class="flex items-center justify-end gap-2">
-                        <button type="button" class="button button-secondary" @click="closePageContentModal()">
+                        <button type="button" class="button button-secondary" @click="closeNavItemModal()">
                             Cancel
                         </button>
-                        <button type="button" class="button button-primary" @click="savePageContent()" :disabled="isSaving">
+                        <button type="button" class="button button-primary" @click="saveNavItem()" :disabled="isSaving">
                             <template x-if="isSaving">
                                 <i class="bi bi-arrow-clockwise" style="animation: spin 1s linear infinite;"></i>
                             </template>
@@ -368,93 +378,79 @@ const editorTemplate = `
                                 <!-- Array (for non-image arrays) -->
                                 <template x-if="field.type === 'array'">
                                     <div>
-                                        <label class="form-label" x-text="field.label"></label>
+										<label class="form-label" x-text="field.key === 'nav' ? 'Menu Items' : field.label"></label>
                                         <div class="array-container">
                                             <template x-for="(arrayItem, index) in formData[field.key]" :key="index">
                                                 <div class="array-item-group">
                                                     <div class="array-item-header">
-                                                        <!-- Special handling for categories and pages - editable name -->
-                                                        <template x-if="field.key === 'categories' || field.key === 'pages'">
-                                                            <input 
-                                                                type="text" 
-                                                                class="category-name-input" 
-                                                                :value="typeof formData[field.key][index] === 'string' ? formData[field.key][index] : (formData[field.key][index].name || formData[field.key][index].title || '')"
-                                                                @focus="categoryOriginalValues[field.key + '_' + index] = typeof formData[field.key][index] === 'string' ? formData[field.key][index] : (formData[field.key][index].name || formData[field.key][index].title || '')"
-                                                                @input="if (typeof formData[field.key][index] === 'string') { formData[field.key][index] = $event.target.value; } else { formData[field.key][index].name = $event.target.value; }"
-                                                                @blur="updateCategoryInPosts(field.key, index, $event.target.value, categoryOriginalValues[field.key + '_' + index]); const trimmed = $event.target.value.trim(); if (typeof formData[field.key][index] === 'string') { formData[field.key][index] = trimmed; } else { formData[field.key][index].name = trimmed; }"
-                                                                :placeholder="field.key === 'pages' ? 'Page name' : 'Category name'"
-                                                            >
-                                                        </template>
-                                                        <!-- Regular item titles for non-categories and non-pages -->
-                                                        <template x-if="field.key !== 'categories' && field.key !== 'pages'">
-                                                            <span class="array-item-title" x-text="'Item ' + (index + 1)"></span>
-                                                        </template>
+														<!-- Nav items: show name as link, no inline edit -->
+														<template x-if="field.key === 'nav'">
+															<button type="button" class="nav-name-link" @click="openNavItemModal(index)">
+																<span x-text="(formData[field.key][index] && formData[field.key][index].name) || formData[field.key][index] || 'Untitled'"></span>
+															</button>
+														</template>
+														<!-- Regular item titles for non-nav -->
+														<template x-if="field.key !== 'nav'">
+															<span class="array-item-title" x-text="'Item ' + (index + 1)"></span>
+														</template>
                                                         <div class="array-item-actions">
-                                                            <!-- Special handling for categories and pages - show reorder and delete buttons -->
-                                                            <template x-if="field.key === 'categories' || field.key === 'pages'">
-                                                                <div class="category-actions">
-                                                                    <template x-if="field.key === 'pages'">
-                                                                        <button type="button" class="action-btn edit" @click="openPageContentModal(field.key, index)" title="Edit page content">
-                                                                            <i class="bi bi-file-text"></i>
-                                                                        </button>
-                                                                    </template>
-                                                                    <button type="button" class="action-btn move" @click="moveArrayItem(field.key, index, -1)" :disabled="index === 0" title="Move up">
-                                                                        <i class="bi bi-arrow-up"></i>
-                                                                    </button>
-                                                                    <button type="button" class="action-btn move" @click="moveArrayItem(field.key, index, 1)" :disabled="index === formData[field.key].length - 1" title="Move down">
-                                                                        <i class="bi bi-arrow-down"></i>
-                                                                    </button>
-                                                                    <button type="button" class="action-btn delete" @click="deleteCategoryItem(field.key, index)" :title="field.key === 'pages' ? 'Delete page' : 'Delete category'">
-                                                                        <i class="bi bi-trash"></i>
-                                                                    </button>
-                                                                </div>
-                                                            </template>
-                                                            <!-- Regular delete button for non-categories and non-pages -->
-                                                            <template x-if="field.key !== 'categories' && field.key !== 'pages'">
-                                                                <button type="button" class="array-remove-btn" @click="removeArrayItem(field.key, index)" title="Remove">
-                                                                    <i class="bi bi-trash"></i>
-                                                                </button>
-                                                            </template>
+															<!-- Nav actions: edit (modal), move, delete -->
+															<template x-if="field.key === 'nav'">
+																<div class="category-actions">
+																	<button type="button" class="action-btn edit" @click="openNavItemModal(index)" title="Edit menu item">
+																		<i class="bi bi-file-text"></i>
+																	</button>
+																	<button type="button" class="action-btn move" @click="moveArrayItem(field.key, index, -1)" :disabled="index === 0" title="Move up">
+																		<i class="bi bi-arrow-up"></i>
+																	</button>
+																	<button type="button" class="action-btn move" @click="moveArrayItem(field.key, index, 1)" :disabled="index === formData[field.key].length - 1" title="Move down">
+																		<i class="bi bi-arrow-down"></i>
+																	</button>
+																	<button type="button" class="action-btn delete" @click="deleteNavItem(index)" title="Delete menu item">
+																		<i class="bi bi-trash"></i>
+																	</button>
+																</div>
+															</template>
+															<!-- Regular delete button for other arrays -->
+															<template x-if="field.key !== 'nav'">
+																<button type="button" class="array-remove-btn" @click="removeArrayItem(field.key, index)" title="Remove">
+																	<i class="bi bi-trash"></i>
+																</button>
+															</template>
                                                         </div>
                                                     </div>
-                                                    <!-- Handle string arrays -->
-                                                    <template x-if="typeof arrayItem === 'string'">
-                                                        <div class="array-item">
-                                                            <!-- For categories and pages, we don't need the separate display since name is in header -->
-                                                            <template x-if="field.key !== 'categories' && field.key !== 'pages'">
-                                                                <input 
-                                                                    type="text" 
-                                                                    class="form-input" 
-                                                                    :placeholder="'Item ' + (index + 1)"
-                                                                    x-model="formData[field.key][index]"
-                                                                >
-                                                            </template>
-                                                        </div>
-                                                    </template>
-                                                    <!-- Handle object arrays -->
-                                                    <template x-if="typeof arrayItem === 'object' && arrayItem !== null">
-                                                        <div class="array-object-fields">
-                                                            <template x-for="(value, objKey) in arrayItem" :key="objKey">
-                                                                <!-- Hide name and content fields for pages (name is in header, content is in modal) -->
-                                                                <template x-if="!(field.key === 'pages' && (objKey === 'content' || objKey === 'name'))">
-                                                                    <div class="array-object-field">
-                                                                        <label class="form-label" x-text="objKey.charAt(0).toUpperCase() + objKey.slice(1).replace(/([A-Z])/g, ' $1').replace(/_/g, ' ')"></label>
-                                                                        <input 
-                                                                            type="text" 
-                                                                            class="form-input" 
-                                                                            :placeholder="objKey"
-                                                                            x-model="formData[field.key][index][objKey]"
-                                                                        >
-                                                                    </div>
-                                                                </template>
-                                                            </template>
-                                                        </div>
-                                                    </template>
+													<!-- Handle string arrays (skip nav) -->
+													<template x-if="typeof arrayItem === 'string' && field.key !== 'nav'">
+														<div class="array-item">
+															<input 
+																type="text" 
+																class="form-input" 
+																:placeholder="'Item ' + (index + 1)"
+																x-model="formData[field.key][index]"
+															>
+														</div>
+													</template>
+													<!-- Handle object arrays (skip nav) -->
+													<template x-if="typeof arrayItem === 'object' && arrayItem !== null && field.key !== 'nav'">
+														<div class="array-object-fields">
+															<template x-for="(value, objKey) in arrayItem" :key="objKey">
+																<div class="array-object-field">
+																	<label class="form-label" x-text="objKey.charAt(0).toUpperCase() + objKey.slice(1).replace(/([A-Z])/g, ' $1').replace(/_/g, ' ')"></label>
+																	<input 
+																		type="text" 
+																		class="form-input" 
+																		:placeholder="objKey"
+																		x-model="formData[field.key][index][objKey]"
+																	>
+																</div>
+															</template>
+														</div>
+													</template>
                                                 </div>
                                             </template>
                                             <button type="button" class="button button-secondary array-add-btn" @click="addArrayItem(field.key)">
                                                 <i class="bi bi-plus"></i>
-                                                <span x-text="field.key === 'categories' ? 'Add Category' : (field.key === 'pages' ? 'Add Page' : 'Add Item')"></span>
+												<span x-text="field.key === 'nav' ? 'Add Menu Item' : 'Add Item'"></span>
                                             </button>
                                         </div>
                                     </div>
@@ -551,7 +547,7 @@ function createDynamicEditor() {
 	return {
 		// State
 		isOpen: false,
-		isPageContentModalOpen: false,
+		isNavItemModalOpen: false,
 		currentTab: 'edit',
 		editType: 'object', // 'object' or 'collection'
 		currentItem: {},
@@ -562,10 +558,8 @@ function createDynamicEditor() {
 		itemTypeName: '',
 		data: {},
 		isSaving: false,
-		categoryOriginalValues: {},
-		pageContentData: { title: '', content: '' },
-		currentPageIndex: null,
-		currentPageFieldKey: null,
+		navItemData: { name: '', title: '', description: '' },
+		currentNavIndex: null,
 
 		// Sortable instance
 		sortableInstance: null,
@@ -646,11 +640,11 @@ function createDynamicEditor() {
 
 			console.log('Opening editor for:', editValue);
 
-			// Parse the edit value (e.g., "site", "pages.1", "navigation.links.1")
+			// Parse the edit value (e.g., "site", "nav", "navigation.links.1")
 			const parts = editValue.split('.');
 
 			if (parts.length === 1) {
-				// Editing a top-level object or array (e.g., "site", "categories", "pages")
+				// Editing a top-level object or array (e.g., "site", "nav")
 				const key = parts[0];
 				this.editType = 'object';
 				const dataValue = this.data[key];
@@ -665,7 +659,7 @@ function createDynamicEditor() {
 				this.collectionName = key;
 				this.itemTypeName = this.formatLabel(key);
 			} else if (parts.length === 2) {
-				// Editing an item in a top-level array (e.g., "pages.1")
+				// Editing an item in a top-level array (e.g., "nav.1")
 				const key = parts[0];
 				const itemId = parseInt(parts[1]);
 
@@ -735,10 +729,11 @@ function createDynamicEditor() {
 
 			for (const [key, value] of Object.entries(item)) {
 				if (key.startsWith('_') || key === 'id') continue; // Skip internal fields and id
+				if (key === 'categories' || key === 'pages') continue; // Deprecated keys
 
 				const field = {
 					key,
-					label: this.formatLabel(key),
+					label: key === 'nav' ? 'Menu Items' : this.formatLabel(key),
 					required: false
 				};
 
@@ -777,16 +772,11 @@ function createDynamicEditor() {
 					];
 				} else if (key === 'category') {
 					field.type = 'select';
-					// Use categories from data if available, otherwise fallback to hardcoded options
-					field.options = this.data.categories || [
-						'Technology',
-						'Design',
-						'Business',
-						'Lifestyle',
-						'JavaScript',
-						'UI/UX',
-						'CSS'
-					];
+					const categoryOptions = Array.isArray(this.data.categories) ? this.data.categories : [];
+					const navOptions = (this.data.nav || [])
+						.map((item) => (typeof item === 'string' ? item : item.name))
+						.filter(Boolean);
+					field.options = Array.from(new Set([...navOptions, ...categoryOptions]));
 				} else if (
 					key === 'content' ||
 					key === 'description' ||
@@ -895,22 +885,17 @@ function createDynamicEditor() {
 				this.formData[fieldKey] = [];
 			}
 
-			// Special handling for categories and pages
-			if (fieldKey === 'categories' || fieldKey === 'pages') {
-				const promptText =
-					fieldKey === 'pages' ? 'Enter new page name:' : 'Enter new category name:';
+			// Special handling for nav (menu items)
+			if (fieldKey === 'nav') {
+				const promptText = 'Enter new menu item name:';
 				const newItemName = prompt(promptText);
 				if (newItemName && newItemName.trim()) {
-					// For pages, create object structure; for categories, keep as string
-					if (fieldKey === 'pages') {
-						this.formData[fieldKey].push({
-							name: newItemName.trim(),
-							title: '', // Title can be set later in modal
-							content: ''
-						});
-					} else {
-						this.formData[fieldKey].push(newItemName.trim());
-					}
+					this.formData[fieldKey].push({
+						id: Date.now(),
+						name: newItemName.trim(),
+						title: '',
+						description: ''
+					});
 				}
 				return;
 			}
@@ -949,96 +934,13 @@ function createDynamicEditor() {
 			}
 		},
 
-		deleteCategoryItem(fieldKey, index) {
-			const item = this.formData[fieldKey][index];
-			const itemName = typeof item === 'string' ? item : item.name || item.title || '';
-			const itemType = fieldKey === 'pages' ? 'page' : 'category';
-			const confirmMessage =
-				fieldKey === 'pages'
-					? `Delete "${itemName}"?`
-					: `Delete "${itemName}"? This will remove the category from all posts that use it.`;
+		deleteNavItem(index) {
+			const item = this.formData.nav?.[index];
+			const itemName = item && typeof item === 'object' ? item.name : item || 'menu item';
+			const confirmMessage = `Delete "${itemName}"?`;
 
 			if (confirm(confirmMessage)) {
-				// Remove category from all posts before deleting it (only for categories)
-				if (fieldKey === 'categories') {
-					this.removeCategoryFromPosts(itemName);
-				}
-				this.formData[fieldKey].splice(index, 1);
-			}
-		},
-
-		updateCategoryInPosts(fieldKey, index, newCategoryName, oldCategoryName) {
-			// Skip if no change
-			if (!newCategoryName || !oldCategoryName || newCategoryName.trim() === oldCategoryName) {
-				return;
-			}
-
-			const trimmedNewName = newCategoryName.trim();
-			if (!trimmedNewName) {
-				return;
-			}
-
-			// Find the content array - could be 'posts', 'articles', or other names
-			let contentArray = null;
-			let contentArrayName = '';
-
-			if (this.data) {
-				// Check for common content array names
-				const possibleNames = ['posts', 'articles', 'items', 'content', 'entries'];
-				for (const name of possibleNames) {
-					if (this.data[name] && Array.isArray(this.data[name])) {
-						contentArray = this.data[name];
-						contentArrayName = name;
-						break;
-					}
-				}
-			}
-
-			// Update all items that use the old category name
-			if (contentArray) {
-				let updatedCount = 0;
-				contentArray.forEach((item) => {
-					if (item.category === oldCategoryName) {
-						item.category = trimmedNewName;
-						updatedCount++;
-					}
-				});
-
-				if (updatedCount > 0) {
-					console.log(
-						`✅ Updated "${oldCategoryName}" → "${trimmedNewName}" in ${updatedCount} ${contentArrayName}`
-					);
-				}
-			}
-		},
-
-		removeCategoryFromPosts(categoryName) {
-			// Find the content array - could be 'posts', 'articles', or other names
-			let contentArray = null;
-			let contentArrayName = '';
-
-			if (this.data) {
-				// Check for common content array names
-				const possibleNames = ['posts', 'articles', 'items', 'content', 'entries'];
-				for (const name of possibleNames) {
-					if (this.data[name] && Array.isArray(this.data[name])) {
-						contentArray = this.data[name];
-						contentArrayName = name;
-						break;
-					}
-				}
-			}
-
-			// Remove category from all items when category is deleted
-			if (contentArray) {
-				let removedCount = 0;
-				contentArray.forEach((item) => {
-					if (item.category === categoryName) {
-						item.category = ''; // Set to empty or could set to 'Uncategorized'
-						removedCount++;
-					}
-				});
-				console.log(`Removed category "${categoryName}" from ${removedCount} ${contentArrayName}`);
+				this.formData.nav.splice(index, 1);
 			}
 		},
 
@@ -1271,81 +1173,83 @@ function createDynamicEditor() {
 			}
 		},
 
-		openPageContentModal(fieldKey, index) {
-			const pageItem = this.formData[fieldKey][index];
+		openNavItemModal(index) {
+			const navItem = this.formData.nav?.[index];
 
-			// Convert string to object if needed, or use existing object
-			if (typeof pageItem === 'string') {
-				this.pageContentData = {
-					title: pageItem, // Use name as default title
-					content: ''
+			if (navItem && typeof navItem === 'object') {
+				this.navItemData = {
+					name: navItem.name || '',
+					title: navItem.title || '',
+					description: navItem.description || ''
 				};
-			} else if (typeof pageItem === 'object' && pageItem !== null) {
-				this.pageContentData = {
-					title: pageItem.title || pageItem.name || '', // Prefer title, fallback to name
-					content: pageItem.content || ''
+			} else if (typeof navItem === 'string') {
+				this.navItemData = {
+					name: navItem,
+					title: '',
+					description: ''
 				};
 			} else {
-				this.pageContentData = { title: '', content: '' };
+				this.navItemData = { name: '', title: '', description: '' };
 			}
 
-			this.currentPageIndex = index;
-			this.currentPageFieldKey = fieldKey;
-			this.isPageContentModalOpen = true;
+			this.currentNavIndex = index;
+			this.isNavItemModalOpen = true;
 
 			// Initialize rich text editor content
 			this.$nextTick(() => {
-				const editor = document.getElementById('editor_page_content');
+				const editor = document.getElementById('editor_nav_description');
 				if (editor) {
-					editor.innerHTML = this.pageContentData.content || '';
+					editor.innerHTML = this.navItemData.description || '';
 				}
 			});
 		},
 
-		closePageContentModal() {
-			this.isPageContentModalOpen = false;
-			this.pageContentData = { title: '', content: '' };
-			this.currentPageIndex = null;
-			this.currentPageFieldKey = null;
+		closeNavItemModal() {
+			this.isNavItemModalOpen = false;
+			this.navItemData = { name: '', title: '', description: '' };
+			this.currentNavIndex = null;
 		},
 
-		async savePageContent() {
-			if (!this.currentPageFieldKey || this.currentPageIndex === null) return;
+		async saveNavItem() {
+			if (this.currentNavIndex === null || !this.formData.nav) return;
 			if (this.isSaving) return;
 
 			this.isSaving = true;
 
 			try {
 				// Get content from rich text editor
-				const editor = document.getElementById('editor_page_content');
+				const editor = document.getElementById('editor_nav_description');
 				if (editor) {
-					this.pageContentData.content = editor.innerHTML;
+					this.navItemData.description = editor.innerHTML;
 				}
 
-				// Get the current page item to preserve the name
-				const currentPage = this.formData[this.currentPageFieldKey][this.currentPageIndex];
-				const existingName = typeof currentPage === 'string' ? currentPage : currentPage.name || '';
+				// Preserve existing id if present
+				const existing = this.formData.nav[this.currentNavIndex];
+				const existingId =
+					existing && typeof existing === 'object' && existing.id ? existing.id : Date.now();
+				const trimmedName = this.navItemData.name.trim();
 
-				// Convert page to object format with name (preserved), title, and content
-				const pageObject = {
-					name: existingName, // Keep the name as-is (edited inline)
-					title: this.pageContentData.title.trim(), // Title from modal
-					content: this.pageContentData.content // Content from modal
+				if (!trimmedName) {
+					alert('Name is required.');
+					this.isSaving = false;
+					return;
+				}
+
+				// Update the nav item
+				this.formData.nav[this.currentNavIndex] = {
+					id: existingId,
+					name: trimmedName,
+					title: this.navItemData.title.trim(),
+					description: this.navItemData.description
 				};
 
-				// Update the page in formData
-				this.formData[this.currentPageFieldKey][this.currentPageIndex] = pageObject;
-
-				// Update the data structure directly
-				if (
-					this.data[this.currentPageFieldKey] &&
-					Array.isArray(this.data[this.currentPageFieldKey])
-				) {
-					this.data[this.currentPageFieldKey] = [...this.formData[this.currentPageFieldKey]];
+				// Update data structure
+				if (this.data.nav && Array.isArray(this.data.nav)) {
+					this.data.nav = [...this.formData.nav];
 				}
 
 				// Save to server
-				console.log('Saving page content to server...');
+				console.log('Saving menu items to server...');
 				const saveResponse = await fetch('/api/save', {
 					method: 'POST',
 					headers: {
@@ -1358,13 +1262,13 @@ function createDynamicEditor() {
 					throw new Error(`Save failed: ${saveResponse.status} - ${saveResponse.statusText}`);
 				}
 
-				console.log('Page content saved successfully');
+				console.log('Menu items saved successfully');
 
 				// Close the modal
-				this.closePageContentModal();
+				this.closeNavItemModal();
 			} catch (error) {
-				console.error('Error saving page content:', error);
-				alert('Failed to save page content. Please try again.');
+				console.error('Error saving menu item:', error);
+				alert('Failed to save menu item. Please try again.');
 			} finally {
 				this.isSaving = false;
 			}
@@ -1513,10 +1417,10 @@ function createDynamicEditor() {
 
 		initRichTextContent(element, fieldKey) {
 			// Set initial content only once when the element is created
-			// Handle page content modal separately
-			if (fieldKey === 'content' && element.id === 'editor_page_content') {
-				if (this.pageContentData && this.pageContentData.content) {
-					element.innerHTML = this.pageContentData.content;
+			// Handle nav item modal separately
+			if (fieldKey === 'description' && element.id === 'editor_nav_description') {
+				if (this.navItemData && this.navItemData.description) {
+					element.innerHTML = this.navItemData.description;
 				}
 			} else if (this.formData[fieldKey]) {
 				element.innerHTML = this.formData[fieldKey];
