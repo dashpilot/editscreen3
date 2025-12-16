@@ -435,15 +435,18 @@ const editorTemplate = `
                                                     <template x-if="typeof arrayItem === 'object' && arrayItem !== null">
                                                         <div class="array-object-fields">
                                                             <template x-for="(value, objKey) in arrayItem" :key="objKey">
-                                                                <div class="array-object-field">
-                                                                    <label class="form-label" x-text="objKey.charAt(0).toUpperCase() + objKey.slice(1).replace(/([A-Z])/g, ' $1').replace(/_/g, ' ')"></label>
-                                                                    <input 
-                                                                        type="text" 
-                                                                        class="form-input" 
-                                                                        :placeholder="objKey"
-                                                                        x-model="formData[field.key][index][objKey]"
-                                                                    >
-                                                                </div>
+                                                                <!-- Hide content field for pages (it's edited in modal) -->
+                                                                <template x-if="!(field.key === 'pages' && objKey === 'content')">
+                                                                    <div class="array-object-field">
+                                                                        <label class="form-label" x-text="objKey.charAt(0).toUpperCase() + objKey.slice(1).replace(/([A-Z])/g, ' $1').replace(/_/g, ' ')"></label>
+                                                                        <input 
+                                                                            type="text" 
+                                                                            class="form-input" 
+                                                                            :placeholder="objKey"
+                                                                            x-model="formData[field.key][index][objKey]"
+                                                                        >
+                                                                    </div>
+                                                                </template>
                                                             </template>
                                                         </div>
                                                     </template>
@@ -902,6 +905,7 @@ function createDynamicEditor() {
 					if (fieldKey === 'pages') {
 						this.formData[fieldKey].push({
 							name: newItemName.trim(),
+							title: '', // Title can be set later in modal
 							content: ''
 						});
 					} else {
@@ -1273,12 +1277,12 @@ function createDynamicEditor() {
 			// Convert string to object if needed, or use existing object
 			if (typeof pageItem === 'string') {
 				this.pageContentData = {
-					title: pageItem,
+					title: pageItem, // Use name as default title
 					content: ''
 				};
 			} else if (typeof pageItem === 'object' && pageItem !== null) {
 				this.pageContentData = {
-					title: pageItem.name || pageItem.title || '',
+					title: pageItem.title || pageItem.name || '', // Prefer title, fallback to name
 					content: pageItem.content || ''
 				};
 			} else {
@@ -1318,10 +1322,15 @@ function createDynamicEditor() {
 					this.pageContentData.content = editor.innerHTML;
 				}
 
-				// Convert page to object format with name and content
+				// Get the current page item to preserve the name
+				const currentPage = this.formData[this.currentPageFieldKey][this.currentPageIndex];
+				const existingName = typeof currentPage === 'string' ? currentPage : currentPage.name || '';
+
+				// Convert page to object format with name (preserved), title, and content
 				const pageObject = {
-					name: this.pageContentData.title.trim(),
-					content: this.pageContentData.content
+					name: existingName, // Keep the name as-is (edited inline)
+					title: this.pageContentData.title.trim(), // Title from modal
+					content: this.pageContentData.content // Content from modal
 				};
 
 				// Update the page in formData
