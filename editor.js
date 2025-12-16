@@ -306,8 +306,8 @@ const editorTemplate = `
                                             <template x-for="(arrayItem, index) in formData[field.key]" :key="index">
                                                 <div class="array-item-group">
                                                     <div class="array-item-header">
-                                                        <!-- Special handling for categories - editable name -->
-                                                        <template x-if="field.key === 'categories'">
+                                                        <!-- Special handling for categories and pages - editable name -->
+                                                        <template x-if="field.key === 'categories' || field.key === 'pages'">
                                                             <input 
                                                                 type="text" 
                                                                 class="category-name-input" 
@@ -315,16 +315,16 @@ const editorTemplate = `
                                                                 @focus="categoryOriginalValues[field.key + '_' + index] = $event.target.value"
                                                                 @input="formData[field.key][index] = $event.target.value"
                                                                 @blur="updateCategoryInPosts(field.key, index, $event.target.value, categoryOriginalValues[field.key + '_' + index]); $event.target.value = $event.target.value.trim(); formData[field.key][index] = $event.target.value.trim()"
-                                                                :placeholder="'Category name'"
+                                                                :placeholder="field.key === 'pages' ? 'Page name' : 'Category name'"
                                                             >
                                                         </template>
-                                                        <!-- Regular item titles for non-categories -->
-                                                        <template x-if="field.key !== 'categories'">
+                                                        <!-- Regular item titles for non-categories and non-pages -->
+                                                        <template x-if="field.key !== 'categories' && field.key !== 'pages'">
                                                             <span class="array-item-title" x-text="'Item ' + (index + 1)"></span>
                                                         </template>
                                                         <div class="array-item-actions">
-                                                            <!-- Special handling for categories - show reorder and delete buttons -->
-                                                            <template x-if="field.key === 'categories'">
+                                                            <!-- Special handling for categories and pages - show reorder and delete buttons -->
+                                                            <template x-if="field.key === 'categories' || field.key === 'pages'">
                                                                 <div class="category-actions">
                                                                     <button type="button" class="action-btn move" @click="moveArrayItem(field.key, index, -1)" :disabled="index === 0" title="Move up">
                                                                         <i class="bi bi-arrow-up"></i>
@@ -332,13 +332,13 @@ const editorTemplate = `
                                                                     <button type="button" class="action-btn move" @click="moveArrayItem(field.key, index, 1)" :disabled="index === formData[field.key].length - 1" title="Move down">
                                                                         <i class="bi bi-arrow-down"></i>
                                                                     </button>
-                                                                    <button type="button" class="action-btn delete" @click="deleteCategoryItem(field.key, index)" title="Delete category">
+                                                                    <button type="button" class="action-btn delete" @click="deleteCategoryItem(field.key, index)" :title="field.key === 'pages' ? 'Delete page' : 'Delete category'">
                                                                         <i class="bi bi-trash"></i>
                                                                     </button>
                                                                 </div>
                                                             </template>
-                                                            <!-- Regular delete button for non-categories -->
-                                                            <template x-if="field.key !== 'categories'">
+                                                            <!-- Regular delete button for non-categories and non-pages -->
+                                                            <template x-if="field.key !== 'categories' && field.key !== 'pages'">
                                                                 <button type="button" class="array-remove-btn" @click="removeArrayItem(field.key, index)" title="Remove">
                                                                     <i class="bi bi-trash"></i>
                                                                 </button>
@@ -348,8 +348,8 @@ const editorTemplate = `
                                                     <!-- Handle string arrays -->
                                                     <template x-if="typeof arrayItem === 'string'">
                                                         <div class="array-item">
-                                                            <!-- For categories, we don't need the separate display since name is in header -->
-                                                            <template x-if="field.key !== 'categories'">
+                                                            <!-- For categories and pages, we don't need the separate display since name is in header -->
+                                                            <template x-if="field.key !== 'categories' && field.key !== 'pages'">
                                                                 <input 
                                                                     type="text" 
                                                                     class="form-input" 
@@ -379,7 +379,7 @@ const editorTemplate = `
                                             </template>
                                             <button type="button" class="button button-secondary array-add-btn" @click="addArrayItem(field.key)">
                                                 <i class="bi bi-plus"></i>
-                                                <span x-text="field.key === 'categories' ? 'Add Category' : 'Add Item'"></span>
+                                                <span x-text="field.key === 'categories' ? 'Add Category' : (field.key === 'pages' ? 'Add Page' : 'Add Item')"></span>
                                             </button>
                                         </div>
                                     </div>
@@ -571,7 +571,7 @@ function createDynamicEditor() {
 			const parts = editValue.split('.');
 
 			if (parts.length === 1) {
-				// Editing a top-level object or array (e.g., "site", "categories")
+				// Editing a top-level object or array (e.g., "site", "categories", "pages")
 				const key = parts[0];
 				this.editType = 'object';
 				const dataValue = this.data[key];
@@ -816,11 +816,13 @@ function createDynamicEditor() {
 				this.formData[fieldKey] = [];
 			}
 
-			// Special handling for categories
-			if (fieldKey === 'categories') {
-				const newCategoryName = prompt('Enter new category name:');
-				if (newCategoryName && newCategoryName.trim()) {
-					this.formData[fieldKey].push(newCategoryName.trim());
+			// Special handling for categories and pages
+			if (fieldKey === 'categories' || fieldKey === 'pages') {
+				const promptText =
+					fieldKey === 'pages' ? 'Enter new page name:' : 'Enter new category name:';
+				const newItemName = prompt(promptText);
+				if (newItemName && newItemName.trim()) {
+					this.formData[fieldKey].push(newItemName.trim());
 				}
 				return;
 			}
@@ -860,12 +862,18 @@ function createDynamicEditor() {
 		},
 
 		deleteCategoryItem(fieldKey, index) {
-			const categoryName = this.formData[fieldKey][index];
-			const confirmMessage = `Delete "${categoryName}"? This will remove the category from all posts that use it.`;
+			const itemName = this.formData[fieldKey][index];
+			const itemType = fieldKey === 'pages' ? 'page' : 'category';
+			const confirmMessage =
+				fieldKey === 'pages'
+					? `Delete "${itemName}"?`
+					: `Delete "${itemName}"? This will remove the category from all posts that use it.`;
 
 			if (confirm(confirmMessage)) {
-				// Remove category from all posts before deleting it
-				this.removeCategoryFromPosts(categoryName);
+				// Remove category from all posts before deleting it (only for categories)
+				if (fieldKey === 'categories') {
+					this.removeCategoryFromPosts(itemName);
+				}
 				this.formData[fieldKey].splice(index, 1);
 			}
 		},
