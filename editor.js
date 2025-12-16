@@ -812,6 +812,17 @@ function createDynamicEditor() {
 			});
 		},
 
+		getNextCategoryId() {
+			const cats = Array.isArray(this.data.categories) ? this.data.categories : [];
+			let maxId = 0;
+			cats.forEach((c) => {
+				if (c && typeof c === 'object' && typeof c.id === 'number') {
+					maxId = Math.max(maxId, c.id);
+				}
+			});
+			return maxId + 1;
+		},
+
 		getCollectionByPath(path) {
 			// Helper function to get collection by path (handles nested paths like "navigation.links")
 			if (path.includes('.')) {
@@ -878,20 +889,32 @@ function createDynamicEditor() {
 				this.formData[fieldKey] = [];
 			}
 
-			// Special handling for categories (menu items)
+			// Special handling for categories
 			if (fieldKey === 'categories') {
 				const promptText = 'Enter new category name:';
 				const newItemName = prompt(promptText);
 				if (newItemName && newItemName.trim()) {
-					this.formData[fieldKey].push({
-						id: Date.now(),
+					// Ensure categories are normalized before computing next id
+					if (Array.isArray(this.data.categories)) {
+						this.data.categories = this.normalizeCategories(this.data.categories);
+					} else {
+						this.data.categories = [];
+					}
+					const nextId = this.getNextCategoryId();
+					const newCategory = {
+						id: nextId,
 						name: newItemName.trim(),
 						title: '',
 						description: ''
-					});
+					};
+					this.formData[fieldKey].push(newCategory);
+					this.data.categories = [...this.formData[fieldKey]];
+					// Set current item to the new one and go to edit view
+					this.collectionItems = [...this.formData[fieldKey]];
+					this.currentItem = newCategory;
+					this.categoryOriginalName = newCategory.name;
+					this.currentTab = 'edit';
 				}
-				// After adding, show list (ensure detail closed)
-				this.closeCategoryItemModal();
 				return;
 			}
 
