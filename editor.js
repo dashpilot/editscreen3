@@ -309,7 +309,7 @@ const editorTemplate = `
 													<template x-for="(arrayItem, index) in formData[field.key]" :key="index">
 														<div class="array-item-group category-list-item">
 															<div class="array-item-header">
-																<button type="button" class="category-name-link" @click="openCategoryItemModal(index)">
+																<button type="button" class="category-name-link" @click="openEditor(\`categories.\${arrayItem.id || index + 1}\`)">
 																	<span x-text="(formData[field.key][index] && formData[field.key][index].name) || formData[field.key][index] || 'Untitled'"></span>
 																</button>
 																<div class="array-item-actions">
@@ -534,6 +534,11 @@ function createDynamicEditor() {
 				// Keep the original data structure intact
 				this.data = rawData;
 
+				// Normalize categories into objects with id/name/title/description
+				if (Array.isArray(this.data.categories)) {
+					this.data.categories = this.normalizeCategories(this.data.categories);
+				}
+
 				console.log('Data loaded successfully');
 			} catch (error) {
 				console.error('Failed to load data:', error);
@@ -570,24 +575,41 @@ function createDynamicEditor() {
 
 			console.log('Opening editor for:', editValue);
 
-			// Parse the edit value (e.g., "site", "nav", "navigation.links.1")
+			// Parse the edit value (e.g., "site", "categories.1", "navigation.links.1")
 			const parts = editValue.split('.');
 
 			if (parts.length === 1) {
-				// Editing a top-level object or array (e.g., "site", "nav")
+				// Editing a top-level object or array (e.g., "site", "categories")
 				const key = parts[0];
-				this.editType = 'object';
-				const dataValue = this.data[key];
+				let dataValue = this.data[key];
 
-				// If it's an array, wrap it in an object for form generation
 				if (Array.isArray(dataValue)) {
-					this.currentItem = { [key]: dataValue };
+					// Treat arrays as collections
+					if (key === 'categories') {
+						dataValue = this.normalizeCategories(dataValue);
+						this.data[key] = dataValue;
+						this.collectionItems = [...dataValue];
+						this.collectionName = key;
+						this.itemTypeName = 'Category';
+						this.editType = 'collection';
+						this.currentItem = dataValue[0] || {};
+						this.categoryOriginalName = this.currentItem.name || '';
+						this.currentTab = 'all';
+					} else {
+						this.collectionItems = [...dataValue];
+						this.collectionName = key;
+						this.itemTypeName = this.formatLabel(key.slice(0, -1));
+						this.editType = 'collection';
+						this.currentItem = dataValue[0] || {};
+						this.currentTab = 'all';
+					}
 				} else {
+					this.editType = 'object';
+					this.collectionName = key;
+					this.itemTypeName = this.formatLabel(key);
 					this.currentItem = dataValue || {};
+					this.currentTab = 'edit';
 				}
-
-				this.collectionName = key;
-				this.itemTypeName = this.formatLabel(key);
 			} else if (parts.length === 2) {
 				// Editing an item in a top-level array (e.g., "categories.1")
 				const key = parts[0];
@@ -597,10 +619,17 @@ function createDynamicEditor() {
 				this.collectionName = key;
 				this.itemTypeName = this.formatLabel(key.slice(0, -1)); // Remove 's' from plural
 
-				const collection = this.data[key] || [];
+				let collection = this.data[key] || [];
+				if (key === 'categories') {
+					collection = this.normalizeCategories(collection);
+					this.data[key] = collection;
+				}
 
-				// Find item by ID
+				// Find item by ID (fallback to index)
 				this.currentItem = collection.find((item) => item.id === itemId);
+				if (!this.currentItem && collection[itemId - 1]) {
+					this.currentItem = collection[itemId - 1];
+				}
 
 				if (!this.currentItem) {
 					console.error('Item not found:', editValue);
@@ -609,6 +638,9 @@ function createDynamicEditor() {
 
 				// Set up collection items for "All Items" view
 				this.collectionItems = [...collection];
+				if (key === 'categories') {
+					this.categoryOriginalName = this.currentItem.name || '';
+				}
 			} else if (parts.length === 3) {
 				// Editing an item in a nested array (e.g., "navigation.links.1")
 				const parentKey = parts[0];
@@ -632,6 +664,10 @@ function createDynamicEditor() {
 
 				// Set up collection items for "All Items" view
 				this.collectionItems = [...collection];
+				if (key === 'categories') {
+					this.categoryOriginalName = this.currentItem.name || '';
+				}
+				this.currentTab = 'edit';
 			} else {
 				console.error('Unsupported edit path depth:', editValue);
 				return;
@@ -749,6 +785,26 @@ function createDynamicEditor() {
 					}
 				}
 			}
+		},
+
+		normalizeCategories(categories) {
+			if (!Array.isArray(categories)) return [];
+			return categories.map((item, idx) => {
+				if (typeof item === 'object' && item !== null) {
+					return {
+						id: item.id || idx + 1,
+						name: item.name || '',
+						title: item.title || '',
+						description: item.description || ''
+					};
+				}
+				return {
+					id: idx + 1,
+					name: item || '',
+					title: '',
+					description: ''
+				};
+			});
 		},
 
 		getCollectionByPath(path) {
@@ -897,6 +953,30 @@ function createDynamicEditor() {
 					} else {
 						console.error('Item not found for update');
 						return;
+					}
+
+					// If editing categories, propagate name changes before save
+					if (
+						this.collectionName === 'categories' &&
+						this.categoryOriginalName &&
+						this.formData.name &&
+						this.formData.name !== this.categoryOriginalName
+					) {
+						const oldName = this.categoryOriginalName;
+						const newName = this.formData.name;
+						const targets = ['posts', 'articles', 'items'];
+						targets.forEach((key) => {
+							const arr = this.data[key];
+							if (arr && Array.isArray(arr)) {
+								arr.forEach((item) => {
+									if (item && item.category === oldName) {
+										item.category = newName;
+									}
+								});
+							}
+						});
+						// update categories array with latest
+						this.data.categories = [...collection];
 					}
 				} else {
 					// Update object directly, or unwrap array if it was wrapped
@@ -1054,6 +1134,9 @@ function createDynamicEditor() {
 			this.generateFormFields(item);
 			this.formData = { ...item };
 			this.preserveDataTypes();
+			if (this.collectionName === 'categories') {
+				this.categoryOriginalName = item.name || '';
+			}
 			this.switchTab('edit');
 		},
 
