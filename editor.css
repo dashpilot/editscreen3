@@ -55,6 +55,10 @@
     margin-top: 1rem;
 }
 
+.nav-list-item {
+    margin-bottom: 5px;
+}
+
 /* Menu item link in list */
 .nav-name-link {
     background: none;

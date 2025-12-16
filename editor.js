@@ -1,5 +1,82 @@
 // Dynamic Editor Template - generates inputs based on data structure
 const editorTemplate = `
+<!-- Nav Item Editor Modal -->
+<div class="modal-overlay nav-item-modal" x-show="isNavItemModalOpen" x-transition style="display: none;" @click.self="closeNavItemModal()">
+    <div class="modal-container">
+        <div class="modal-main nav-item-modal-main">
+            <div class="modal-header">
+                <h2 class="modal-title">Edit Menu Item</h2>
+                <button class="modal-close" @click="closeNavItemModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form @submit.prevent="saveNavItem()">
+                    <div class="form-group">
+                        <label class="form-label" for="nav-name">Name</label>
+                        <input 
+                            type="text" 
+                            id="nav-name"
+                            name="nav-name"
+                            class="form-input" 
+                            x-model="navItemData.name"
+                            required
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="nav-title">Title</label>
+                        <input 
+                            type="text" 
+                            id="nav-title"
+                            name="nav-title"
+                            class="form-input" 
+                            x-model="navItemData.title"
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <div class="rich-text-editor">
+                            <div class="rich-text-toolbar">
+                                <button type="button" class="toolbar-btn" @click="formatText('bold')" title="Bold">
+                                    <i class="bi bi-type-bold"></i>
+                                </button>
+                                <button type="button" class="toolbar-btn" @click="formatText('italic')" title="Italic">
+                                    <i class="bi bi-type-italic"></i>
+                                </button>
+                                <button type="button" class="toolbar-btn" @click="insertLink()" title="Insert Link">
+                                    <i class="bi bi-link-45deg"></i>
+                                </button>
+                            </div>
+                            <div 
+                                class="rich-text-content" 
+                                contenteditable="true"
+                                spellcheck="false"
+                                id="editor_nav_description"
+                                @input="navItemData.description = $event.target.innerHTML"
+                                @paste="handlePaste($event)"
+                                x-init="initRichTextContent($el, 'description')"
+                            ></div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <div class="footer-content">
+                    <div class="flex items-center justify-end gap-2">
+                        <button type="button" class="button button-secondary" @click="closeNavItemModal()">
+                            Cancel
+                        </button>
+                        <button type="button" class="button button-primary" @click="saveNavItem()" :disabled="isSaving">
+                            <template x-if="isSaving">
+                                <i class="bi bi-arrow-clockwise" style="animation: spin 1s linear infinite;"></i>
+                            </template>
+                            <span x-text="isSaving ? 'Saving...' : 'Save'"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="modal-overlay" x-show="isOpen" x-transition style="display: none;" @click.self="closeModal()">
     <div class="modal-container">
         <div class="modal-content">
@@ -304,17 +381,17 @@ const editorTemplate = `
 										<label class="form-label" x-text="field.key === 'nav' ? 'Menu Items' : field.label"></label>
                                         <div class="array-container">
 											<!-- Nav list view -->
-											<template x-if="field.key === 'nav' && currentNavIndex === null">
+											<template x-if="field.key === 'nav'">
 												<div>
 													<template x-for="(arrayItem, index) in formData[field.key]" :key="index">
-														<div class="array-item-group">
+														<div class="array-item-group nav-list-item">
 															<div class="array-item-header">
-																<button type="button" class="nav-name-link" @click="openNavItemDetail(index)">
+																<button type="button" class="nav-name-link" @click="openNavItemModal(index)">
 																	<span x-text="(formData[field.key][index] && formData[field.key][index].name) || formData[field.key][index] || 'Untitled'"></span>
 																</button>
 																<div class="array-item-actions">
 																	<div class="category-actions">
-																		<button type="button" class="action-btn edit" @click="openNavItemDetail(index)" title="Edit menu item">
+																		<button type="button" class="action-btn edit" @click="openNavItemModal(index)" title="Edit menu item">
 																			<i class="bi bi-file-text"></i>
 																		</button>
 																		<button type="button" class="action-btn move" @click="moveArrayItem(field.key, index, -1)" :disabled="index === 0" title="Move up">
@@ -335,71 +412,6 @@ const editorTemplate = `
 														<i class="bi bi-plus"></i>
 														<span>Add Menu Item</span>
 													</button>
-												</div>
-											</template>
-
-											<!-- Nav detail view -->
-											<template x-if="field.key === 'nav' && currentNavIndex !== null">
-												<div class="nav-detail-panel">
-													<div class="nav-detail-header">
-														<h4 class="nav-detail-title">Edit Menu Item</h4>
-														<button type="button" class="button button-secondary" @click="closeNavDetail()">Back to list</button>
-													</div>
-													<div class="form-group">
-														<label class="form-label" for="nav-name">Name</label>
-														<input 
-															type="text" 
-															id="nav-name"
-															name="nav-name"
-															class="form-input" 
-															x-model="navItemData.name"
-															required
-														>
-													</div>
-													<div class="form-group">
-														<label class="form-label" for="nav-title">Title</label>
-														<input 
-															type="text" 
-															id="nav-title"
-															name="nav-title"
-															class="form-input" 
-															x-model="navItemData.title"
-														>
-													</div>
-													<div class="form-group">
-														<label class="form-label">Description</label>
-														<div class="rich-text-editor">
-															<div class="rich-text-toolbar">
-																<button type="button" class="toolbar-btn" @click="formatText('bold')" title="Bold">
-																	<i class="bi bi-type-bold"></i>
-																</button>
-																<button type="button" class="toolbar-btn" @click="formatText('italic')" title="Italic">
-																	<i class="bi bi-type-italic"></i>
-																</button>
-																<button type="button" class="toolbar-btn" @click="insertLink()" title="Insert Link">
-																	<i class="bi bi-link-45deg"></i>
-																</button>
-															</div>
-															<div 
-																class="rich-text-content" 
-																contenteditable="true"
-																spellcheck="false"
-																id="editor_nav_description"
-																@input="navItemData.description = $event.target.innerHTML"
-																@paste="handlePaste($event)"
-																x-init="initRichTextContent($el, 'description')"
-															></div>
-														</div>
-													</div>
-													<div class="nav-detail-actions">
-														<button type="button" class="button button-secondary" @click="closeNavDetail()">Cancel</button>
-														<button type="button" class="button button-primary" @click="saveNavDetail()" :disabled="isSaving">
-															<template x-if="isSaving">
-																<i class="bi bi-arrow-clockwise" style="animation: spin 1s linear infinite;"></i>
-															</template>
-															<span x-text="isSaving ? 'Saving...' : 'Save'"></span>
-														</button>
-													</div>
 												</div>
 											</template>
 
@@ -896,7 +908,7 @@ function createDynamicEditor() {
 					});
 				}
 				// After adding, show list (ensure detail closed)
-				this.closeNavDetail();
+				this.closeNavItemModal();
 				return;
 			}
 
@@ -1173,7 +1185,7 @@ function createDynamicEditor() {
 			}
 		},
 
-		openNavItemDetail(index) {
+		openNavItemModal(index) {
 			const navItem = this.formData.nav?.[index];
 
 			if (navItem && typeof navItem === 'object') {
@@ -1196,6 +1208,7 @@ function createDynamicEditor() {
 			}
 
 			this.currentNavIndex = index;
+			this.isNavItemModalOpen = true;
 
 			// Initialize rich text editor content
 			this.$nextTick(() => {
@@ -1206,13 +1219,14 @@ function createDynamicEditor() {
 			});
 		},
 
-		closeNavDetail() {
+		closeNavItemModal() {
+			this.isNavItemModalOpen = false;
 			this.navItemData = { name: '', title: '', description: '' };
 			this.currentNavIndex = null;
 			this.navOriginalName = '';
 		},
 
-		async saveNavDetail() {
+		async saveNavItem() {
 			if (this.currentNavIndex === null || !this.formData.nav) return;
 			if (this.isSaving) return;
 
@@ -1286,7 +1300,7 @@ function createDynamicEditor() {
 				console.log('Menu items saved successfully');
 
 				// Close the detail panel
-				this.closeNavDetail();
+				this.closeNavItemModal();
 			} catch (error) {
 				console.error('Error saving menu item:', error);
 				alert('Failed to save menu item. Please try again.');
