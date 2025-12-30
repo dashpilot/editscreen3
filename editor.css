@@ -32,11 +32,8 @@
     transition: opacity 0.2s ease;
 }
 
-[data-edit] .edit-cog::before {
-    content: '\F4A2'; /* Bootstrap Icons gear icon */
-    font-family: 'bootstrap-icons';
-    font-weight: normal;
-    font-style: normal;
+[data-edit] .edit-cog i {
+    font-size: 14px;
 }
 
 [data-edit]:hover .edit-cog {

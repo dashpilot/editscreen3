@@ -536,10 +536,13 @@ function createDynamicEditor() {
 					return;
 				}
 
-				// Create cog icon
+				// Create cog icon with Bootstrap Icons gear icon
 				const cogIcon = document.createElement('div');
 				cogIcon.className = 'edit-cog';
 				cogIcon.setAttribute('data-cog', 'true');
+				const iconElement = document.createElement('i');
+				iconElement.className = 'bi bi-gear';
+				cogIcon.appendChild(iconElement);
 				element.appendChild(cogIcon);
 			});
 		},
