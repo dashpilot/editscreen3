@@ -100,8 +100,8 @@ const editorTemplate = `
                                             :required="field.required"
                                         >
                                             <option value="">Select an option</option>
-                                            <template x-for="option in field.options" :key="option">
-                                                <option :value="option" x-text="option"></option>
+                                            <template x-for="option in field.options" :key="typeof option === 'object' ? option.value : option">
+                                                <option :value="typeof option === 'object' ? option.value : option" x-text="typeof option === 'object' ? option.label : option"></option>
                                             </template>
                                         </select>
                                     </div>
@@ -408,7 +408,7 @@ const editorTemplate = `
                                     <div class="item-title" x-text="getItemTitle(item)"></div>
                                     <div class="item-meta">
                                         <template x-if="item.category">
-                                            <span class="item-category" x-text="item.category"></span>
+                                            <span class="item-category" x-text="collectionName === 'posts' || collectionName === 'articles' || collectionName === 'items' ? getCategoryNameBySlug(item.category) : item.category"></span>
                                         </template>
                                         <template x-if="item.status">
                                             <span class="item-status" :class="item.status" x-text="item.status"></span>
@@ -743,13 +743,15 @@ function createDynamicEditor() {
 					];
 				} else if (key === 'category') {
 					field.type = 'select';
-					const categoryOptionsRaw = Array.isArray(this.data.categories)
-						? this.data.categories
-						: [];
-					const categoryOptions = categoryOptionsRaw
-						.map((item) => (typeof item === 'string' ? item : item.name))
-						.filter(Boolean);
-					field.options = Array.from(new Set(categoryOptions));
+					// Normalize categories to ensure they have slugs
+					const normalizedCategories = this.normalizeCategories(
+						Array.isArray(this.data.categories) ? this.data.categories : []
+					);
+					// Store categories with slug as value and name as display
+					field.options = normalizedCategories.map((cat) => ({
+						value: cat.slug,
+						label: cat.name || cat.slug
+					}));
 				} else if (
 					key === 'content' ||
 					key === 'description' ||
@@ -780,6 +782,15 @@ function createDynamicEditor() {
 			);
 		},
 
+		getCategoryNameBySlug(slug) {
+			if (!slug) return '';
+			const normalizedCategories = this.normalizeCategories(
+				Array.isArray(this.data.categories) ? this.data.categories : []
+			);
+			const category = normalizedCategories.find((cat) => cat.slug === slug);
+			return category ? category.name : slug; // Fallback to slug if not found
+		},
+
 		preserveDataTypes() {
 			// Ensure boolean values in formData remain as booleans
 			for (const [key, value] of Object.entries(this.currentItem)) {
@@ -792,24 +803,36 @@ function createDynamicEditor() {
 			}
 		},
 
+		generateSlug(name) {
+			if (!name) return '';
+			return name
+				.toLowerCase()
+				.trim()
+				.replace(/[^\w\s-]/g, '') // Remove special characters
+				.replace(/[\s_-]+/g, '-') // Replace spaces and underscores with hyphens
+				.replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+		},
+
 		normalizeCategories(categories) {
 			if (!Array.isArray(categories)) return [];
-			return categories.map((item, idx) => {
-				if (typeof item === 'object' && item !== null) {
-					return {
-						id: item.id || idx + 1,
-						name: item.name || '',
-						title: item.title || '',
-						description: item.description || ''
-					};
-				}
-				return {
-					id: idx + 1,
-					name: item || '',
-					title: '',
-					description: ''
-				};
-			});
+			return categories
+				.map((item, idx) => {
+					// Categories are always objects with id, name, title, description, slug
+					if (typeof item === 'object' && item !== null) {
+						// Preserve existing slug or generate from name
+						const slug = item.slug || this.generateSlug(item.name || '');
+						return {
+							id: item.id || idx + 1,
+							name: item.name || '',
+							title: item.title || '',
+							description: item.description || '',
+							slug: slug || `category-${idx + 1}`
+						};
+					}
+					// Invalid category format - skip it
+					return null;
+				})
+				.filter(Boolean);
 		},
 
 		getNextCategoryId() {
@@ -901,11 +924,13 @@ function createDynamicEditor() {
 						this.data.categories = [];
 					}
 					const nextId = this.getNextCategoryId();
+					const trimmedName = newItemName.trim();
 					const newCategory = {
 						id: nextId,
-						name: newItemName.trim(),
+						name: trimmedName,
 						title: '',
-						description: ''
+						description: '',
+						slug: this.generateSlug(trimmedName)
 					};
 					this.formData[fieldKey].push(newCategory);
 					this.data.categories = [...this.formData[fieldKey]];
@@ -954,7 +979,7 @@ function createDynamicEditor() {
 
 		deleteCategoryItem(index) {
 			const item = this.formData.categories?.[index];
-			const itemName = item && typeof item === 'object' ? item.name : item || 'category';
+			const itemName = item && typeof item === 'object' ? item.name : 'category';
 			const confirmMessage = `Delete "${itemName}"?`;
 
 			if (confirm(confirmMessage)) {
@@ -983,28 +1008,18 @@ function createDynamicEditor() {
 						return;
 					}
 
-					// If editing categories, propagate name changes before save
-					if (
-						this.collectionName === 'categories' &&
-						this.categoryOriginalName &&
-						this.formData.name &&
-						this.formData.name !== this.categoryOriginalName
-					) {
-						const oldName = this.categoryOriginalName;
-						const newName = this.formData.name;
-						const targets = ['posts', 'articles', 'items'];
-						targets.forEach((key) => {
-							const arr = this.data[key];
-							if (arr && Array.isArray(arr)) {
-								arr.forEach((item) => {
-									if (item && item.category === oldName) {
-										item.category = newName;
-									}
-								});
-							}
-						});
-						// update categories array with latest
-						this.data.categories = [...collection];
+					// If editing categories, preserve slug when name changes
+					if (this.collectionName === 'categories') {
+						const existingCategory = collection.find((item) => item.id === this.currentItem.id);
+						// Preserve existing slug - only generate new one if slug doesn't exist
+						if (existingCategory && existingCategory.slug) {
+							this.formData.slug = existingCategory.slug;
+						} else if (!this.formData.slug) {
+							// Generate slug if it doesn't exist
+							this.formData.slug = this.generateSlug(this.formData.name || '');
+						}
+						// Ensure categories are normalized
+						this.data.categories = this.normalizeCategories(collection);
 					}
 				} else {
 					// Update object directly, or unwrap array if it was wrapped
@@ -1228,13 +1243,6 @@ function createDynamicEditor() {
 					description: categoryItem.description || ''
 				};
 				this.categoryOriginalName = categoryItem.name || '';
-			} else if (typeof categoryItem === 'string') {
-				this.categoryItemData = {
-					name: categoryItem,
-					title: '',
-					description: ''
-				};
-				this.categoryOriginalName = categoryItem;
 			} else {
 				this.categoryItemData = { name: '', title: '', description: '' };
 				this.categoryOriginalName = '';
@@ -1284,34 +1292,23 @@ function createDynamicEditor() {
 					return;
 				}
 
-				// Track original name for propagation
-				const originalName = this.categoryOriginalName || (existing && existing.name) || '';
+				// Preserve existing slug - slug should never change once created
+				const existingSlug =
+					existing && typeof existing === 'object' && existing.slug
+						? existing.slug
+						: this.generateSlug(trimmedName);
 
 				// Update the category item
 				this.formData.categories[this.currentCategoryIndex] = {
 					id: existingId,
 					name: trimmedName,
 					title: this.categoryItemData.title.trim(),
-					description: this.categoryItemData.description
+					description: this.categoryItemData.description,
+					slug: existingSlug // Slug stays constant even if name changes
 				};
 
-				// Update data structure
-				this.data.categories = [...this.formData.categories];
-
-				// Propagate name change to categories used in content arrays
-				if (originalName && trimmedName !== originalName) {
-					const targets = ['posts', 'articles', 'items'];
-					targets.forEach((key) => {
-						const arr = this.data[key];
-						if (arr && Array.isArray(arr)) {
-							arr.forEach((item) => {
-								if (item && item.category === originalName) {
-									item.category = trimmedName;
-								}
-							});
-						}
-					});
-				}
+				// Update data structure and normalize
+				this.data.categories = this.normalizeCategories([...this.formData.categories]);
 
 				// Save to server
 				console.log('Saving categories to server...');
