@@ -499,23 +499,48 @@ function createDynamicEditor() {
 			// Load data from data.json
 			await this.loadData();
 
-			// Listen for data-edit clicks
+			// Inject cog icons into all data-edit elements
+			this.injectCogIcons();
+
+			// Watch for dynamically added data-edit elements
+			const observer = new MutationObserver(() => {
+				this.injectCogIcons();
+			});
+			observer.observe(document.body, {
+				childList: true,
+				subtree: true
+			});
+
+			// Listen for cog icon clicks only
 			document.addEventListener('click', (event) => {
-				const editElement = event.target.closest('[data-edit]');
-				if (editElement) {
-					// Check if the clicked element is a link, button, or inside one
-					const clickedElement = event.target;
-					const isInteractiveElement = clickedElement.closest('a, button, input, select, textarea');
-
-					// If clicked on an interactive element, don't trigger the modal
-					if (isInteractiveElement) {
-						return;
+				// Check if the clicked element is a cog icon
+				const cogIcon = event.target.closest('.edit-cog');
+				if (cogIcon) {
+					const editElement = event.target.closest('[data-edit]');
+					if (editElement) {
+						event.preventDefault();
+						event.stopPropagation();
+						const dataEdit = editElement.getAttribute('data-edit');
+						this.openEditor(dataEdit);
 					}
-
-					event.preventDefault();
-					const dataEdit = editElement.getAttribute('data-edit');
-					this.openEditor(dataEdit);
 				}
+			});
+		},
+
+		injectCogIcons() {
+			// Find all data-edit elements
+			const editElements = document.querySelectorAll('[data-edit]');
+			editElements.forEach((element) => {
+				// Skip if already has a cog icon
+				if (element.querySelector('.edit-cog')) {
+					return;
+				}
+
+				// Create cog icon
+				const cogIcon = document.createElement('div');
+				cogIcon.className = 'edit-cog';
+				cogIcon.setAttribute('data-cog', 'true');
+				element.appendChild(cogIcon);
 			});
 		},
 

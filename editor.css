@@ -8,10 +8,43 @@
     box-sizing: border-box;
 }
 
-[data-edit]:hover {
-    outline: 3px dashed rgb(79, 70, 229);
-    outline-offset: 4px;
+/* Make data-edit elements position relative so we can position the cog icon */
+[data-edit] {
+    position: relative;
+}
+
+/* Cog icon for editable areas */
+[data-edit] .edit-cog {
+    display: none;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    background: #000;
+    border-radius: 4px;
     cursor: pointer;
+    z-index: 10;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 14px;
+    transition: opacity 0.2s ease;
+}
+
+[data-edit] .edit-cog::before {
+    content: '\F4A2'; /* Bootstrap Icons gear icon */
+    font-family: 'bootstrap-icons';
+    font-weight: normal;
+    font-style: normal;
+}
+
+[data-edit]:hover .edit-cog {
+    display: flex;
+}
+
+[data-edit] .edit-cog:hover {
+    opacity: 0.8;
 }
 
 /* Modal styles */
