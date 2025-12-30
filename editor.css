@@ -13,14 +13,20 @@
     position: relative;
 }
 
+/* Grey dashed outline on hover */
+[data-edit]:hover {
+    outline: 2px dashed #9ca3af;
+    outline-offset: 4px;
+}
+
 /* Cog icon for editable areas */
 [data-edit] .edit-cog {
     display: none;
     position: absolute;
     top: 8px;
     right: 8px;
-    width: 24px;
-    height: 24px;
+    width: 32px;
+    height: 32px;
     background: #000;
     border-radius: 4px;
     cursor: pointer;
@@ -28,12 +34,11 @@
     align-items: center;
     justify-content: center;
     color: #fff;
-    font-size: 14px;
     transition: opacity 0.2s ease;
 }
 
 [data-edit] .edit-cog i {
-    font-size: 14px;
+    font-size: 16px;
 }
 
 [data-edit]:hover .edit-cog {
