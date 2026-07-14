@@ -1587,7 +1587,7 @@ function createDynamicEditor() {
 			this.publishViewError = '';
 
 			try {
-				const response = await fetch('/api/publish-view');
+				const response = await fetch('/publish-view');
 				if (!response.ok) {
 					throw new Error(`Failed to load publish view (${response.status})`);
 				}
