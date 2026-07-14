@@ -8,13 +8,13 @@ const editorTemplate = `
                     <h3 class="sidebar-title">Editor</h3>
                 </div>
                 <div class="sidebar-nav">
-                    <button class="sidebar-nav-item" :class="{ active: currentTab === 'edit' }" @click="switchTab('edit')">
-                        <i class="bi bi-pencil"></i>
-                        <span class="nav-text">Edit Item</span>
-                    </button>
                     <button class="sidebar-nav-item" :class="{ active: currentTab === 'all' }" @click="switchTab('all')" x-show="editType === 'collection'">
                         <i class="bi bi-list-ul"></i>
                         <span class="nav-text">All Items</span>
+                    </button>
+                    <button class="sidebar-nav-item" :class="{ active: currentTab === 'edit' }" @click="switchTab('edit')">
+                        <i class="bi bi-pencil"></i>
+                        <span class="nav-text">Edit Item</span>
                     </button>
                 </div>
             </div>

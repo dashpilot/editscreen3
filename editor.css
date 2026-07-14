@@ -163,7 +163,7 @@
 .sidebar-nav {
     display: flex;
     flex-direction: column;
-    padding: 0;
+    padding: 79px 0 0;
 }
 
 .sidebar-nav-item {
@@ -199,10 +199,6 @@
 
 .sidebar-nav-item i {
     display: none;
-}
-
-.sidebar-nav-item:first-child {
-    margin-top: 79px;
 }
 
 .modal-main {
@@ -671,10 +667,6 @@ input:checked+.toggle-slider:before {
         padding: 1rem;
         border-right: none;
         border-bottom: 3px solid transparent;
-        margin-top: 0;
-    }
-
-    .sidebar-nav-item:first-child {
         margin-top: 0;
     }
 
