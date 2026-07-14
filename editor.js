@@ -472,6 +472,29 @@ const editorTemplate = `
         </div>
     </div>
 </div>
+
+<button type="button" class="publish-fab button button-primary" @click="openPublishModal()">
+    Publish
+</button>
+
+<div class="modal-overlay publish-modal-overlay" x-show="publishModalOpen" x-transition style="display: none;" @click.self="closePublishModal()">
+    <div class="modal-container publish-modal-container">
+        <div class="modal-main">
+            <div class="modal-header">
+                <h2 class="modal-title">Publish</h2>
+                <button type="button" class="modal-close" @click="closePublishModal()">&times;</button>
+            </div>
+            <div class="modal-body publish-modal-body">
+                <div class="publish-loading" x-show="publishViewLoading">
+                    <i class="bi bi-arrow-clockwise" style="animation: spin 1s linear infinite;"></i>
+                    <span>Loading...</span>
+                </div>
+                <div class="publish-error" x-show="publishViewError" x-text="publishViewError"></div>
+                <div class="publish-view-content" x-show="!publishViewLoading && !publishViewError" x-html="publishViewContent"></div>
+            </div>
+        </div>
+    </div>
+</div>
 `;
 
 // Dynamic Editor Component
@@ -490,6 +513,10 @@ function createDynamicEditor() {
 		data: {},
 		isSaving: false,
 		categoryOriginalName: '',
+		publishModalOpen: false,
+		publishViewLoading: false,
+		publishViewContent: '',
+		publishViewError: '',
 
 		// Sortable instance
 		sortableInstance: null,
@@ -1551,6 +1578,33 @@ function createDynamicEditor() {
 		isValidYouTubeId(id) {
 			// Check if it's a valid YouTube video ID format
 			return id && /^[a-zA-Z0-9_-]{11}$/.test(id);
+		},
+
+		async openPublishModal() {
+			this.publishModalOpen = true;
+			this.publishViewLoading = true;
+			this.publishViewContent = '';
+			this.publishViewError = '';
+
+			try {
+				const response = await fetch('/api/publish-view');
+				if (!response.ok) {
+					throw new Error(`Failed to load publish view (${response.status})`);
+				}
+
+				this.publishViewContent = await response.text();
+			} catch (error) {
+				console.error('Error loading publish view:', error);
+				this.publishViewError = error.message || 'Failed to load publish view';
+			} finally {
+				this.publishViewLoading = false;
+			}
+		},
+
+		closePublishModal() {
+			this.publishModalOpen = false;
+			this.publishViewContent = '';
+			this.publishViewError = '';
 		}
 	};
 }

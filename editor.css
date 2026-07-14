@@ -49,6 +49,51 @@
     opacity: 0.8;
 }
 
+/* Publish button */
+.publish-fab {
+    position: fixed;
+    right: 2rem;
+    bottom: 2rem;
+    z-index: 900;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.publish-modal-overlay {
+    z-index: 1100;
+}
+
+.publish-modal-container {
+    width: min(960px, 100%);
+    height: auto;
+    max-height: 90vh;
+}
+
+.publish-modal-body {
+    min-height: 200px;
+}
+
+.publish-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 3rem 1rem;
+    color: #6b7280;
+    font-size: 1rem;
+}
+
+.publish-error {
+    padding: 1rem;
+    color: #b91c1c;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 0.375rem;
+}
+
+.publish-view-content {
+    width: 100%;
+}
+
 /* Modal styles */
 .modal-overlay {
     position: fixed;
