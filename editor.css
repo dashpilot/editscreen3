@@ -50,11 +50,14 @@
 }
 
 /* Publish button */
-.publish-fab {
+.publish-fab.button {
     position: fixed;
+    top: auto;
+    left: auto;
     right: 2rem;
     bottom: 2rem;
     z-index: 900;
+    margin: 0;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
